@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SanderPunten</string>
+    <string name="network_service_desc">This service is used for networking to maintain connections
+        between users.</string>
+</resources>
