@@ -37,7 +37,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     private ArrayList<Drawable> drawables = new ArrayList<>();
 
     private float width, height;
-    private boolean drawEdges = true;
 
     public GLRenderer(Activity act, GLRenderCallback callback) {
         this.act = act;
@@ -145,26 +144,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         drawables.add(d);
     }
 
-    public void layoutDrawables(LayoutBox root) {
-        if (root.getBackgroundTexture() != - 1) {
-            TriangleStrip background = new TriangleStrip(DrawObjects.getBackgroundPoints(root.getCorners()),
-                    Colors.WHITE, root.getBackgroundTexture(),
-                    DrawObjects.get_background_texcoords());
-            background.setTransformMatrix(root.getTransformMatrix());
-            addDrawable(background);
-        }
-
-        if (drawEdges) {
-            float[][] edges = root.getEdges(5f);
-            TriangleStrip edge_stip;
-            for (int i = 0; i < 4; i++) {
-                edge_stip = new TriangleStrip(edges[i], Colors.RED, -1, null);
-                edge_stip.setTransformMatrix(root.getTransformMatrix());
-                addDrawable(edge_stip);
-            }
-        }
-    }
-
     public void onDestroy() {
         Shaders.clear(programHandles, vertexHandles,
                 fragmentHandles);
@@ -174,6 +153,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     public int[] getTextures() {
         return textures;
     }
+
+
 
     private void printArray(float[] f, int n) {
         System.out.println("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");

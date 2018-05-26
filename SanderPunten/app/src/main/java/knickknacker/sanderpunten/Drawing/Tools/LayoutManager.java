@@ -13,6 +13,7 @@ import knickknacker.sanderpunten.Drawing.GLRenderCallback;
 import knickknacker.sanderpunten.Drawing.Objects.ButtonMenu;
 import knickknacker.sanderpunten.Drawing.Objects.DrawObjects;
 import knickknacker.sanderpunten.Drawing.Objects.LayoutBox;
+import knickknacker.sanderpunten.Drawing.Objects.RelativeLayoutBox;
 import knickknacker.sanderpunten.Drawing.Properties.Colors;
 
 /**
@@ -25,6 +26,8 @@ public class LayoutManager implements GLRenderCallback {
     private GLSurfaceView view;
     private Activity act;
 
+    private boolean drawEdges = true;
+
     private int width = 0;
     private int height = 0;
 
@@ -36,24 +39,26 @@ public class LayoutManager implements GLRenderCallback {
     public void surfaceCreatedCallback() {
         root = new LayoutBox(null);
         root.setBackgroundTexture(renderer.getTextures()[0]);
-        layoutSetup();
     }
 
     public void surfaceChangedCallback(int width, int height) {
-        this.width = width;
-        this.height = height;
+        if (this.width != width || this.height != height) {
+            this.width = width;
+            this.height = height;
 
-        if (root == null) {
-            root = new LayoutBox(null, width, height);
-        } else {
-            root.newResolution(width, height);
+            if (root == null) {
+                root = new LayoutBox(null, width, height);
+            } else {
+                root.newResolution(width, height);
+            }
+
+            layoutSetup();
+            layoutDrawables(root);
         }
-
-        renderer.layoutDrawables(root);
     }
 
     private void layoutSetup() {
-        LayoutBox child = new LayoutBox(root, 0.1f, 0.9f, 0.1f, 0.9f);
+        LayoutBox child = new RelativeLayoutBox(root, 0.1f, 0.9f, 0.1f, 0.9f);
 
 
 
@@ -65,6 +70,25 @@ public class LayoutManager implements GLRenderCallback {
 //            strip = new TriangleStrip(points, Colors.WHITE_TRANS, -1, null);
 //            this.renderer.addRatioDrawable(strip);
 //        }
+    }
+
+    public void layoutBoxToDrawables(LayoutBox layoutBox) {
+        if (layoutBox.getBackgroundTexture() != -1) {
+            TriangleStrip background = new TriangleStrip(DrawObjects.getBackgroundPoints(layoutBox.getCorners()),
+                    Colors.WHITE, layoutBox.getBackgroundTexture(),
+                    DrawObjects.get_background_texcoords());
+            background.setTransformMatrix(layoutBox.getTransformMatrix());
+            renderer.addDrawable(background);
+        }
+
+        edgesToDrawables(layoutBox);
+    }
+
+    public void layoutDrawables(LayoutBox layoutBox) {
+        layoutBoxToDrawables(layoutBox);
+        for (LayoutBox child : layoutBox.getChilderen()) {
+            layoutDrawables(child);
+        }
     }
 
     public void onCreate() {
@@ -105,5 +129,17 @@ public class LayoutManager implements GLRenderCallback {
 
     public GLSurfaceView getView() {
         return view;
+    }
+
+    public void edgesToDrawables(LayoutBox layoutBox) {
+        if (drawEdges) {
+            float[][] edges = layoutBox.getEdges(5f);
+            TriangleStrip edge_stip;
+            for (int i = 0; i < 4; i++) {
+                edge_stip = new TriangleStrip(edges[i], Colors.RED, -1, null);
+                edge_stip.setTransformMatrix(layoutBox.getTransformMatrix());
+                renderer.addDrawable(edge_stip);
+            }
+        }
     }
 }

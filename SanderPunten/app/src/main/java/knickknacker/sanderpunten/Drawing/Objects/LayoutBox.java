@@ -7,16 +7,18 @@ import java.util.ArrayList;
  */
 
 public class LayoutBox {
-    private LayoutBox parent;
+    protected LayoutBox parent;
     protected float left, right, bottom, top;
     protected float width, height;
-    private ArrayList<LayoutBox> childeren = new ArrayList<>();
-    private float[] transformMatrix;
-    private int backgroundTexture = -1;
+    protected ArrayList<LayoutBox> childeren = new ArrayList<>();
+    protected float[] transformMatrix = null;
+    protected int backgroundTexture = -1;
 
     public LayoutBox(LayoutBox parent) {
         this.parent = parent;
-        this.parent.addChild(this);
+        if (parent != null) {
+            this.parent.addChild(this);
+        }
     }
 
     public LayoutBox(LayoutBox parent, float width, float height) {
@@ -38,12 +40,8 @@ public class LayoutBox {
         this.bottom = bottom;
         this.top = top;
 
-        this.width = right - left;
-        this.height = top - bottom;
-
-        if (parent == null) {
-            transformMatrix = null;
-        }
+        this.width = this.right - this.left;
+        this.height = this.top - this.bottom;
     }
 
     public void addChild(LayoutBox child) {
@@ -62,8 +60,20 @@ public class LayoutBox {
         this.backgroundTexture = backgroundTexture;
     }
 
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
     public float[] getCorners() {
         return new float[] {left, right, bottom, top};
+    }
+
+    public ArrayList<LayoutBox> getChilderen() {
+        return childeren;
     }
 
     /**
