@@ -11,12 +11,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 import knickknacker.sanderpunten.Drawing.Drawables.Drawable;
 import knickknacker.sanderpunten.Drawing.Drawables.Text;
-import knickknacker.sanderpunten.Drawing.Drawables.TriangleStrip;
-import knickknacker.sanderpunten.Drawing.GLRenderCallback;
-import knickknacker.sanderpunten.Drawing.Objects.DrawObjects;
-import knickknacker.sanderpunten.Drawing.Objects.LayoutBox;
-import knickknacker.sanderpunten.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Drawing.TextManager;
 import knickknacker.sanderpunten.R;
 
 /**
@@ -26,7 +20,6 @@ import knickknacker.sanderpunten.R;
 public class GLRenderer implements GLSurfaceView.Renderer {
     private Activity act;
     private GLRenderCallback callback;
-    private TextManager textManager;
 
     private int[] vertexHandles;
     private int[] fragmentHandles;
@@ -86,9 +79,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-        textManager = new TextManager(act.getAssets());
-        textManager.load( "font/well_bred.ttf", 35, 0.01f, 0.01f );
-
         loadTextures();
         callback.surfaceCreatedCallback();
 
@@ -101,18 +91,17 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 unused, int width_, int height_) {
         callback.surfaceChangedCallback(width_, height_);
-        Text text = textManager.getText( "Test Text", 0.0f, 0.0f, Colors.GREEN);
-        drawables.add(text);
 
         width = width_;
         height = height_;
 
         setPrograms(drawables);
-
         setProjections();
 
         GLES20.glViewport(0, 0, width_, height_);
         GLES20.glClearColor(1f, 1f, 1f, 1f);
+
+        System.out.println("Ready to draw: " + drawables.size() + " drawables.");
     }
 
     private void setProjections() {
@@ -156,7 +145,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
 
 
-    private void printArray(float[] f, int n) {
+    public void printArray(float[] f, int n) {
         System.out.println("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
         for (int i = 0; i < f.length; i += n) {
             for (int j = 0; j < n; j++) {

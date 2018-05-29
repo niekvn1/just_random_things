@@ -24,6 +24,17 @@ public abstract class Matrices {
         return m;
     }
 
+    public static float[] getTranslationMatrix(float x, float y) {
+        float[] m = {
+                1f, 0f, 0f, x,
+                0f, 1f, 0f, y,
+                0f, 0f, 1f, 0f,
+                0f, 0f, 0f, 1f
+        };
+
+        return m;
+    }
+
     public static float[] getTranslateMatrix(float worldWidth, float worldHeight) {
         float[] m = {
                 1f, 0f, 0f, -worldWidth / 2,

@@ -12,15 +12,22 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import knickknacker.sanderpunten.Drawing.Tools.LayoutManager;
-import knickknacker.sanderpunten.Mechanics.TouchListener;
+import java.util.ArrayList;
+
+import knickknacker.sanderpunten.LayoutMechanics.Objects.ButtonMenu;
+import knickknacker.sanderpunten.LayoutMechanics.Objects.LayoutBox;
+import knickknacker.sanderpunten.LayoutMechanics.Objects.TextBox;
+import knickknacker.sanderpunten.Drawing.Properties.Colors;
+import knickknacker.sanderpunten.Drawing.Tools.TextManager;
+import knickknacker.sanderpunten.LayoutMechanics.LayoutManager;
+import knickknacker.sanderpunten.LayoutMechanics.LayoutManagerCallback;
+import knickknacker.sanderpunten.LayoutMechanics.TouchListener;
 import knickknacker.sanderpunten.Services.NetworkService;
 
 import static knickknacker.sanderpunten.Keys.BROADCAST_KEY;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LayoutManagerCallback {
     private LayoutManager layoutManager;
-    private TouchListener touchListener;
 
     /** This is the setup for the communication with the Service which holds the functionality
      * to find devices with UDP and connect to them with TCP. */
@@ -50,11 +57,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("FIRST CREATE");
+
         layoutManager = new LayoutManager(this);
         layoutManager.onCreate();
-        View view = layoutManager.getView();
-        view.setOnTouchListener(touchListener);
-
 
         if (this.rsr != null) {
             IntentFilter filter = new IntentFilter(BROADCAST_KEY);
@@ -63,6 +69,20 @@ public class MainActivity extends AppCompatActivity {
 
         getApplicationContext().bindService(new Intent(this, NetworkService.class), this.rsc,
                 Context.BIND_AUTO_CREATE);
+    }
+
+    public void surfaceCreatedCallback(LayoutBox root, TextManager textManager) {
+        ButtonMenu child = new ButtonMenu(root,0.1f, 0.9f, 0.1f, 0.9f, true, true, 3);
+        child.setButtonSize(100);
+        child.setButtonMargin(10);
+        child.setButtonColor(Colors.WHITE_TRANS);
+        child.setButtonTexture(-1);
+
+        ArrayList<LayoutBox> buttons = child.getChilderen();
+
+        LayoutBox button = buttons.get(0);
+        TextBox text = new TextBox(button, 0.1f, 0.9f, 0.1f, 0.9f, true);
+        text.setText(textManager, "Test: Deze tekst slaat nergens op en heeft alleen het doel om te kijken of de lijnen onderbroken worden als de tekst langer is dan width van de TextBox", Colors.BLUE);
     }
 
     @Override
