@@ -31,32 +31,33 @@ public class ButtonMenu extends LayoutBox {
     }
 
     @Override
-    public void newResolution(float left, float right, float bottom, float top) {
-
+    protected void resolutionChain() {
+        super.resolutionMe();
+        exactFit();
+        super.resolutionChilderen();
     }
 
-    private boolean exactFit() {
-        if (!buttonsSet) {
-            float button_height = (height - (buttonCount - 1) * buttonMargin) / buttonCount;
-            for (int i = 0; i < buttonCount; i++) {
-                float[] corners = new float[4];
+    private void exactFit() {
+        float button_height = (height - (buttonCount - 1) * buttonMargin) / buttonCount;
+        for (int i = 0; i < buttonCount; i++) {
+            float[] corners = new float[4];
 //                left, right, bottom, top
-                corners[0] = left;
-                corners[1] = right;
-                corners[2] = top - i * buttonMargin - (i + 1) * button_height;
-                corners[3] = top - i * buttonMargin - i * button_height;
+            corners[0] = left;
+            corners[1] = right;
+            corners[2] = top - i * buttonMargin - (i + 1) * button_height;
+            corners[3] = top - i * buttonMargin - i * button_height;
 
+            if (!buttonsSet) {
                 LayoutBox button = childeren.get(i);
                 button.setColor(buttonColor);
                 button.setBackgroundTexture(buttonTexture);
                 button.initAll(corners[0], corners[1], corners[2], corners[3]);
+            } else {
+                childeren.get(i).newResolution(corners[0], corners[1], corners[2], corners[3]);
             }
-
-            buttonsSet = true;
-            return true;
         }
 
-        return false;
+        buttonsSet = true;
     }
 
     public float getButtonMargin() {

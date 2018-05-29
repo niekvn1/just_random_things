@@ -102,7 +102,7 @@ public abstract class Shaders {
 
     public static void setVBO(int[] buffers, int index, FloatBuffer data) {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[index]);
-        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, data.capacity() * 4, data, GLES20.GL_STATIC_DRAW);
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, data.capacity() * 4, data, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
     }
 

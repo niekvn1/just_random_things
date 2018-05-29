@@ -89,6 +89,14 @@ public class Drawable {
         }
     }
 
+    public void edit(float[] points, float[] color) {
+        if (points != null) {
+            System.out.println(points[0] + " " + points[1] + " " + points[2] + " " + points[3] + " " + points[4] + " " + points[5] + " " + points[6] + " " + points[7]);
+            this.points = points;
+            Shaders.setVBO(buffers, 0, Shaders.getFloatBuffer(this.points));
+        }
+    }
+
     public int getTexture() {
         return this.texture;
     }

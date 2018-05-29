@@ -116,7 +116,13 @@ public class LayoutBox {
         resolutionChain();
     }
 
-    public void resolutionChain() {
+    protected void resolutionChain() {
+        System.out.println("Resolution Chain");
+        resolutionMe();
+        resolutionChilderen();
+    }
+
+    protected void resolutionMe() {
         if (relative) {
             float pwidth = parent.getWidth();
             float pheight = parent.getHeight();
@@ -127,35 +133,36 @@ public class LayoutBox {
             right = pleft + rRight * pwidth;
             bottom = pbottom + rBottom * pheight;
             top = pbottom + rTop * pheight;
+        }
 
-            this.width = this.right - this.left;
-            this.height = this.top - this.bottom;
+        this.width = this.right - this.left;
+        this.height = this.top - this.bottom;
 
-            if (edges == null) {
-                toDrawable(false);
-            } else {
-                toDrawable(true);
-            }
+        if (edges == null) {
+            toDrawable(false);
+        } else {
+            toDrawable(true);
+        }
+    }
 
-
-            for (LayoutBox child : childeren) {
-                child.resolutionChain();
-            }
+    protected void resolutionChilderen() {
+        for (LayoutBox child : childeren) {
+            child.resolutionChain();
         }
     }
 
     public ArrayList<Drawable> toDrawable(boolean edges) {
         ArrayList<Drawable> returnDrawables = new ArrayList<>();
-        if (backgroundTexture != -1 || color != null) {
-            if (background == null) {
-                background = new TriangleStrip(DrawObjects.getBackgroundPoints(this.getCorners()),
-                                               color, backgroundTexture,
-                                               DrawObjects.get_background_texcoords());
-                background.setTransformMatrix(transformMatrix);
-                returnDrawables.add(background);
-            } else {
-//              TODO edit drawables.
+        if (background == null) {
+            if (backgroundTexture != -1 || color != null) {
+                    background = new TriangleStrip(DrawObjects.getBackgroundPoints(this.getCorners()),
+                                                   color, backgroundTexture,
+                                                   DrawObjects.get_background_texcoords());
+                    background.setTransformMatrix(transformMatrix);
+                    returnDrawables.add(background);
             }
+        } else {
+            background.edit(DrawObjects.getBackgroundPoints(this.getCorners()), null);
         }
 
         if (edges) {
@@ -177,7 +184,9 @@ public class LayoutBox {
                 returnDrawables.add(edge_stip);
             }
         } else {
-//            TODO edit drawables.
+            for (int i = 0; i < 4; i++) {
+                this.edges.get(i).edit(edges[i], null);
+            }
         }
     }
 
