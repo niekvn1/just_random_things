@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * Created by Niek on 28-10-17.
@@ -16,7 +17,7 @@ public abstract class Serialize {
     /** Source:
      * http://www.java2s.com/Code/Android/Development/Functionthatgetthesizeofanobject.htm
      * Create a byte array of an object. */
-    public static byte[] serialize(Object o) {
+    public static byte[] serialize(Serializable o) {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         try {
             ObjectOutputStream objectOutStream = new ObjectOutputStream(outStream);

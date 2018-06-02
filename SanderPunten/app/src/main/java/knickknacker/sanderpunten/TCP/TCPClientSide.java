@@ -104,7 +104,6 @@ public class TCPClientSide {
         public void run() {
             try {
                 server_address = InetAddress.getByName(address);
-                System.out.println("Address: " + server_address.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -114,7 +113,6 @@ public class TCPClientSide {
             try {
                 TCPClientSide.this.socket = new SocketHolder(new Socket(this.server_address, this.server_port));
                 TCPClientSide.this.socket.setOpen();
-
                 bundle.putBoolean(CONNECTED_KEY, true);
             } catch (IOException e) {
                 e.printStackTrace();

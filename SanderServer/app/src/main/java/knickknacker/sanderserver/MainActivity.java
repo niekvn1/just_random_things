@@ -11,12 +11,18 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import knickknacker.sanderserver.Services.NetworkService;
 
-import static knickknacker.sanderserver.Keys.BROADCAST_KEY;
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_KEY;
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_TYPE;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_DISPLAY;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_KEY;
 
 public class MainActivity extends AppCompatActivity {
+    private LinearLayout messageContainer;
 
     /** This is the setup for the communication with the Service which holds the functionality
      * to find devices with UDP and connect to them with TCP. */
@@ -39,14 +45,26 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
-
+            byte type = bundle.getByte(BROADCAST_TYPE);
+            switch (type) {
+                case STRING_DISPLAY:
+                    displayString(bundle.getString(STRING_KEY));
+                    break;
+            }
         }
     };
+
+    private void displayString(String text) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        messageContainer.addView(textView);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        messageContainer = findViewById(R.id.message_container);
 
         if (this.rsr != null) {
             IntentFilter filter = new IntentFilter(BROADCAST_KEY);

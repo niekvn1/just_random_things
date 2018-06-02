@@ -2,6 +2,7 @@ package knickknacker.sanderserver.Services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -9,6 +10,11 @@ import android.os.Messenger;
 
 import knickknacker.sanderserver.TCPCallback;
 import knickknacker.sanderserver.TCPListener;
+
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_KEY;
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_TYPE;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_DISPLAY;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_KEY;
 
 /**
  * Created by Niek on 28-12-2017.
@@ -48,8 +54,31 @@ public class NetworkService extends Service implements TCPCallback {
         }
     }
 
-    /** Send connection loss signal to activity. */
-    public void connectionLoss() {
+    public void stringDisplay(String text) {
+        Intent intent = new Intent();
+        intent.setAction(BROADCAST_KEY);
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, STRING_DISPLAY);
+        bundle.putString(STRING_KEY, text);
+        intent.putExtras(bundle);
+        sendBroadcast(intent);
+    }
 
+    public void onConnect(String address, int port) {
+        stringDisplay("[Connection: " + address + ":" + port + "]");
+
+    }
+
+    /** Send connection loss signal to activity. */
+    public void onDisconnect(String address, int port) {
+        stringDisplay("[Disconnect: " + address + ":" + port + "]");
+    }
+
+    public void onRegister(String address, int port) {
+        stringDisplay("[Register Request: " + address + ":" + port + "]");
+    }
+
+    public void onRegistered(String address, int port, long id) {
+        stringDisplay("[Registered: " + address + ":" + port + "] id: " + id);
     }
 }

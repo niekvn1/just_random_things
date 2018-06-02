@@ -32,6 +32,7 @@ public class TCPServerSide {
 
     private ServerSocket server;
     private TCPServerUser user;
+    private Handler connectHandler;
     private Handler handler;
     private StartServer startServer;
     private Thread startThread;
@@ -40,6 +41,7 @@ public class TCPServerSide {
     public TCPServerSide(TCPServerUser s) {
         this.user = s;
         this.handler = new Handler(new NewMessage());
+        this.connectHandler = new Handler(new OnConnect());
         this.startServer = new StartServer();
         this.sockets = new ConcurrentList<>();
     }
@@ -89,6 +91,16 @@ public class TCPServerSide {
         new Thread(new CloseConnection(address, port)).start();
     }
 
+    private class OnConnect implements Handler.Callback {
+        public boolean handleMessage(Message msg) {
+            Bundle bundle = msg.getData();
+            String address = bundle.getString(SOCKET_ADDRESS_KEY);
+            int port = bundle.getInt(SOCKET_PORT_KEY);
+            user.onConnect(address, port);
+            return false;
+        }
+    }
+
     private class NewMessage implements Handler.Callback {
         public boolean handleMessage(Message msg) {
             Bundle bundle = msg.getData();
@@ -132,6 +144,8 @@ public class TCPServerSide {
                 return;
             }
 
+            Message msg;
+            Bundle bundle;
             Socket socket;
             SocketHolder socketHolder;
             while (!Thread.currentThread().isInterrupted()) {
@@ -144,6 +158,12 @@ public class TCPServerSide {
                     TCPServerSide.this.sockets.add(socketHolder);
 
                     new Thread(new Accepted(socketHolder)).start();
+                    msg = TCPServerSide.this.connectHandler.obtainMessage();
+                    bundle = new Bundle();
+                    bundle.putString(SOCKET_ADDRESS_KEY, socketHolder.getSocket().getInetAddress().toString());
+                    bundle.putInt(SOCKET_PORT_KEY, socketHolder.getSocket().getPort());
+                    msg.setData(bundle);
+                    msg.sendToTarget();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

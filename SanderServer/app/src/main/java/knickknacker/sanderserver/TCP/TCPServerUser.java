@@ -8,6 +8,8 @@ package knickknacker.sanderserver.TCP;
  */
 
 public interface TCPServerUser {
+    void onConnect(String address, int port);
+
     void onReceive(byte[] data, String address, int port);
 
     void onDisconnect(String address, int port);

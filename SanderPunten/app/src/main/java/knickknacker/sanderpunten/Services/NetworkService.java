@@ -2,13 +2,16 @@ package knickknacker.sanderpunten.Services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 
-import knickknacker.sanderpunten.TCPCallback;
-import knickknacker.sanderpunten.TCPListener;
+import knickknacker.sanderpunten.TCP.TCPCallback;
+import knickknacker.sanderpunten.TCP.TCPListener;
+
+import static knickknacker.sanderpunten.Services.ServiceTypes.*;
 
 /**
  * Created by Niek on 28-12-2017.
@@ -43,13 +46,44 @@ public class NetworkService extends Service implements TCPCallback {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-
+                case WHAT_REGISTER:
+                    con.register();
             }
         }
     }
 
-    /** Send connection loss signal to activity. */
-    public void connectionLoss() {
-
+    private void sendBundle(Bundle bundle) {
+        Intent intent = new Intent();
+        intent.setAction(BROADCAST_KEY);
+        intent.putExtras(bundle);
+        sendBroadcast(intent);
     }
+
+    public void connectionFailed() {
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, FAILED_TO_CONNECT);
+        sendBundle(bundle);
+    }
+
+    public void onConnect() {
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, CONNECTED);
+        sendBundle(bundle);
+    }
+
+    /** Send connection loss signal to activity. */
+    public void onDisconnect() {
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, DISCONNECTED);
+        sendBundle(bundle);
+    }
+
+    public void onRegisterResponse(long id) {
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, REGISTER_RESPONSE);
+        bundle.putLong(LONG_KEY, id);
+        sendBundle(bundle);
+    }
+
+
 }

@@ -7,5 +7,12 @@ package knickknacker.sanderserver;
  */
 
 public interface TCPCallback {
-    void connectionLoss();
+    void onConnect(String address, int port);
+
+    void onDisconnect(String address, int port);
+
+    void onRegister(String address, int port);
+
+    void onRegistered(String address, int port, long id);
+
 }
