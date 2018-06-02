@@ -2,9 +2,14 @@ package knickknacker.sanderpunten.TCP;
 
 import android.os.Bundle;
 
-import knickknacker.sanderpunten.Serialize;
+import knickknacker.tcp.Message;
+import knickknacker.tcp.Serialize;
+import knickknacker.tcp.TCPClientSide;
+import knickknacker.tcp.TCPClientUser;
+import knickknacker.tcp.UserData;
 
-import static knickknacker.sanderpunten.TCP.MessageTypes.*;
+import static knickknacker.sanderpunten.Services.ServiceTypes.REGISTER_RESPONSE;
+import static knickknacker.tcp.MessageTypes.*;
 
 /**
  * Created by Niek on 28-10-17.
@@ -25,7 +30,7 @@ public class TCPListener implements TCPClientUser {
     }
 
     public void register() {
-        Message msg = new Message(REGISTER, null);
+        Message msg = new Message(MSG_REGISTER, null);
         byte[] bytes = Serialize.serialize(msg);
         client.sendData(bytes);
     }
@@ -48,8 +53,8 @@ public class TCPListener implements TCPClientUser {
             Object p = m.getData();
             switch(m.getType()) {
                 case REGISTER_RESPONSE:
-                    if (p instanceof Bundle) {
-                        handleRegisterResponse((Bundle) p);
+                    if (p instanceof UserData) {
+                        handleRegisterResponse((UserData) p);
                     }
                     break;
 
@@ -57,8 +62,9 @@ public class TCPListener implements TCPClientUser {
         }
     }
 
-    private void handleRegisterResponse(Bundle data) {
-        callback.onRegisterResponse(data.getLong(LONG, -1));
+    private void handleRegisterResponse(UserData userData) {
+        System.out.println("Userdata: " + userData);
+        callback.onRegisterResponse(userData);
     }
 
     /** Handle the disconnection of a member. */

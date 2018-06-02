@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Services;
+package knickknacker.sanderserver.Services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -8,11 +8,13 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 
-import knickknacker.sanderpunten.TCP.TCPCallback;
-import knickknacker.sanderpunten.TCP.TCPListener;
-import knickknacker.tcp.UserData;
+import knickknacker.sanderserver.TCP.TCPCallback;
+import knickknacker.sanderserver.TCP.TCPListener;
 
-import static knickknacker.sanderpunten.Services.ServiceTypes.*;
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_KEY;
+import static knickknacker.sanderserver.Services.ServiceTypes.BROADCAST_TYPE;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_DISPLAY;
+import static knickknacker.sanderserver.Services.ServiceTypes.STRING_KEY;
 
 /**
  * Created by Niek on 28-12-2017.
@@ -47,44 +49,36 @@ public class NetworkService extends Service implements TCPCallback {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case WHAT_REGISTER:
-                    con.register();
+
             }
         }
     }
 
-    private void sendBundle(Bundle bundle) {
+    public void stringDisplay(String text) {
         Intent intent = new Intent();
         intent.setAction(BROADCAST_KEY);
+        Bundle bundle = new Bundle();
+        bundle.putByte(BROADCAST_TYPE, STRING_DISPLAY);
+        bundle.putString(STRING_KEY, text);
         intent.putExtras(bundle);
         sendBroadcast(intent);
     }
 
-    public void connectionFailed() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, FAILED_TO_CONNECT);
-        sendBundle(bundle);
-    }
+    public void onConnect(String address, int port) {
+        stringDisplay("[Connection: " + address + ":" + port + "]");
 
-    public void onConnect() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, CONNECTED);
-        sendBundle(bundle);
     }
 
     /** Send connection loss signal to activity. */
-    public void onDisconnect() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, DISCONNECTED);
-        sendBundle(bundle);
+    public void onDisconnect(String address, int port) {
+        stringDisplay("[Disconnect: " + address + ":" + port + "]");
     }
 
-    public void onRegisterResponse(UserData userData) {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, REGISTER_RESPONSE);
-        bundle.putSerializable(OBJECT_KEY, userData);
-        sendBundle(bundle);
+    public void onRegister(String address, int port) {
+        stringDisplay("[Register Request: " + address + ":" + port + "]");
     }
 
-
+    public void onRegistered(String address, int port, long id) {
+        stringDisplay("[Registered: " + address + ":" + port + "] id: " + id);
+    }
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import knickknacker.sanderpunten.Rendering.LayoutMechanics.LayoutManagerCallback
 import knickknacker.sanderpunten.Rendering.LayoutMechanics.Touch.TouchCallback;
 import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
+import knickknacker.tcp.UserData;
 
 import static knickknacker.sanderpunten.Services.ServiceTypes.BROADCAST_KEY;
 import static knickknacker.sanderpunten.Services.ServiceTypes.BROADCAST_TYPE;
@@ -32,6 +34,7 @@ import static knickknacker.sanderpunten.Services.ServiceTypes.CONNECTED;
 import static knickknacker.sanderpunten.Services.ServiceTypes.DISCONNECTED;
 import static knickknacker.sanderpunten.Services.ServiceTypes.FAILED_TO_CONNECT;
 import static knickknacker.sanderpunten.Services.ServiceTypes.LONG_KEY;
+import static knickknacker.sanderpunten.Services.ServiceTypes.OBJECT_KEY;
 import static knickknacker.sanderpunten.Services.ServiceTypes.REGISTER_RESPONSE;
 import static knickknacker.sanderpunten.Services.ServiceTypes.WHAT_REGISTER;
 
@@ -73,25 +76,25 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
             byte type = bundle.getByte(BROADCAST_TYPE);
             switch (type) {
                 case FAILED_TO_CONNECT:
-                    Toast.makeText(context, "Could not establish connection.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Could not establish connection.", Toast.LENGTH_SHORT).show();
                     break;
                 case CONNECTED:
-                    Toast.makeText(context, "Connected!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Connected!", Toast.LENGTH_SHORT).show();
                     onConnect();
                     break;
                 case DISCONNECTED:
-                    Toast.makeText(context, "Disconnected!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Disconnected!", Toast.LENGTH_SHORT).show();
                     break;
                 case REGISTER_RESPONSE:
-                    Toast.makeText(context, "Register Response!", Toast.LENGTH_LONG).show();
-                    handleRegisterResponse(bundle.getLong(LONG_KEY, -1));
+                    Toast.makeText(context, "Register Response!", Toast.LENGTH_SHORT).show();
+                    handleRegisterResponse((UserData) bundle.getSerializable(OBJECT_KEY));
                     break;
             }
         }
     };
 
     private void onConnect() {
-        if (userData == null) {
+        if (userData == null || userData.getId() == -1) {
             register();
         }
     }
@@ -100,15 +103,19 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         ServiceFunctions.signal(rsm, WHAT_REGISTER);
     }
 
-    private void handleRegisterResponse(long id) {
-        if (id != -1) {
-            userData = new UserData(id);
+    private void handleRegisterResponse(UserData userData) {
+        if (userData == null) {
+            Toast.makeText(this, "Server Registration Failed", Toast.LENGTH_SHORT).show();
+        } else {
+            this.userData = userData;
         }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        userData = new UserData(-1);
+        userData.setName("<Unset>");
 
         layoutManager = new LayoutManager(this, 2);
         layoutManager.onCreate();
@@ -141,11 +148,19 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     private void initButtons(ArrayList<LayoutBox> buttons) {
         Button button = (Button) buttons.get(0);
         button.setHitColor(Colors.RED_TRANS);
-        TextBox text = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.1f, 0.9f, true);
+
         TextManager textManager = new TextManager(this.getAssets());
         textManager.setFontFile("font/well_bred.otf");
         textManager.setSize(30);
-        text.setText(textManager, "Button", Colors.BLUE);
+
+        TextBox text = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.65f, 0.95f, true);
+        text.setText(textManager, "Profile:", Colors.BLUE);
+
+        TextBox text2 = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.35f, 0.65f, true);
+        text2.setText(textManager, "Name: " + userData.getName(), Colors.GREEN);
+
+        TextBox text3 = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.05f, 0.35f, true);
+        text3.setText(textManager, "Sanderpunten: " + userData.getSanderpunten(), Colors.BLACK);
 
         button.setTouchCallback(new TouchCallback() {
             @Override
