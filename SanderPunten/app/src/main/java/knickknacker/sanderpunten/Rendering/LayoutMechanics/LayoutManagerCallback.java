@@ -7,5 +7,7 @@ import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.LayoutBox;
  */
 
 public interface LayoutManagerCallback {
-    void surfaceCreatedCallback(LayoutBox root);
+    void setupLayout(LayoutBox root);
+
+    void loadLayout(float unit);
 }

@@ -77,6 +77,10 @@ public class TouchListener implements View.OnTouchListener {
         return true;
     }
 
+    public void setRoot(LayoutBox root) {
+        this.root = root;
+    }
+
     public class TouchData {
         private byte MAX_POINTERS = 5;
         private int pointerCount;

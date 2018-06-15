@@ -44,6 +44,7 @@ public class TCPListener implements TCPServerUser {
         callback.onRegister(address, port);
 
         UserData userData = new UserData(next_id);
+        userData.setName("New User");
 
         Message msg = new Message(MSG_REGISTER_RESPONSE, userData);
         byte[] bytes = Serialize.serialize(msg);

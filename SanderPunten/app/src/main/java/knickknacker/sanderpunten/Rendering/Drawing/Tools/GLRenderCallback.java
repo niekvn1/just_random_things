@@ -8,4 +8,6 @@ public interface GLRenderCallback {
     void surfaceCreatedCallback();
 
     void surfaceChangedCallback(int width, int height);
+
+    void onDrawCallback();
 }

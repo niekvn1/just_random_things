@@ -18,8 +18,6 @@ import knickknacker.sanderpunten.Rendering.Layout;
  */
 
 public class GLRenderer implements GLSurfaceView.Renderer {
-    public final static int INTERRUPT_CHANGE = 1;
-
     private Activity act;
     private GLRenderCallback callback;
 
@@ -30,11 +28,9 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     private int[] textures;
 
     private Layout layout;
-    private Layout layout_temp;
 
     private float width, height, worldWidth, worldHeight;
     private boolean initial = true;
-    private int inter = 0;
 
     public GLRenderer(Activity act, GLRenderCallback callback) {
         this.act = act;
@@ -45,7 +41,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         textures = Textures.loadTexture(act, ids);
     }
 
-    private void setPrograms(ArrayList<Drawable> drawables) {
+    public void setPrograms(ArrayList<Drawable> drawables) {
         for (Drawable d : drawables) {
             if (d instanceof Text) {
                 d.init();
@@ -133,26 +129,12 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 unused) {
+        callback.onDrawCallback();
+
         int clearMask = GLES20.GL_COLOR_BUFFER_BIT;
         GLES20.glClear(clearMask);
 
-        if (inter != 0) {
-            handleInterrupt();
-        }
-
         drawList(layout.getDrawables());
-    }
-
-    private void handleInterrupt() {
-        if (inter == INTERRUPT_CHANGE) {
-            layout = layout_temp;
-            if (!layout.isDrawInitialized()) {
-                setPrograms(layout.getDrawables());
-                layout.setDrawInitialized(true);
-            }
-        }
-
-        inter = 0;
     }
 
     public void onDestroy() {
@@ -167,10 +149,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     public void setLayout(Layout layout) {
         this.layout = layout;
-    }
-
-    public void newLayout(Layout layout) {
-        this.layout_temp = layout;
     }
 
     public void setInitial(boolean initial) {
@@ -195,10 +173,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     public void setWorldHeight(float worldHeight) {
         this.worldHeight = worldHeight;
-    }
-
-    public void interrupt(int type) {
-        inter = type;
     }
 
     public void printArray(float[] f, int n) {

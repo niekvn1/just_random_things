@@ -26,20 +26,26 @@ public class TextBox extends LayoutBox {
         super(manager, parent, left, right, bottom, top, relative);
     }
 
-    public void setText(TextManager manager, String text, float[] color) {
-        this.textManager = manager;
+    public void setTextManager(TextManager textManager) {
+        this.textManager = textManager;
+    }
+
+    public void setText(String text) {
         this.text = text;
+        if (text != null && textDraw != null) {
+            editText();
+        }
+    }
+
+    public void setText(String text, float[] color) {
         this.textColor = color;
+        setText(text);
     }
 
     @Override
     public void initAll() {
         super.init();
         if (text != null) {
-            if (!textManager.isFontLoaded()) {
-                textManager.load(manager.getUnit());
-            }
-
             textDraw = textManager.getTextFit(text, 0, 0, textColor, width, height, stayInsideBox, breakOnSpace);
             if (textDraw != null) {
                 textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
@@ -54,17 +60,21 @@ public class TextBox extends LayoutBox {
     protected void resolutionChain() {
         super.resolutionMe();
         if (text != null && textDraw != null) {
-            Text newText = textManager.getTextFit(text, 0, 0, textColor, width, height, stayInsideBox, breakOnSpace);
-            if (newText != null) {
-                textDraw.editPoints(newText.getPoints());
-                textDraw.editTexels(newText.getTexcoords());
-                textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
-            } else {
-                textDraw.setReady(false);
-            }
+            editText();
         }
 
         super.resolutionChilderen();
+    }
+
+    private void editText() {
+        Text newText = textManager.getTextFit(text, 0, 0, textColor, width, height, stayInsideBox, breakOnSpace);
+        if (newText != null) {
+            textDraw.editPoints(newText.getPoints());
+            textDraw.editTexels(newText.getTexcoords());
+            textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
+        } else {
+            textDraw.setReady(false);
+        }
     }
 
     @Override

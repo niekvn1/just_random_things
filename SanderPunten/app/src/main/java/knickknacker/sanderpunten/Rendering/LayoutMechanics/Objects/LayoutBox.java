@@ -29,6 +29,7 @@ public class LayoutBox {
     protected ArrayList<Drawable> edges = null;
     protected LayoutManager manager = null;
     protected TouchCallback touch;
+    protected String id = "";
 
     public LayoutBox(LayoutManager manager, LayoutBox parent) {
         this.manager = manager;
@@ -309,6 +310,14 @@ public class LayoutBox {
 
     public void setTouchCallback(TouchCallback touch) {
         this.touch = touch;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**

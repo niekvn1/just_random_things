@@ -9,6 +9,7 @@ import android.opengl.GLSurfaceView;
 import java.util.ArrayList;
 
 import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
+import knickknacker.sanderpunten.Rendering.Drawing.Tools.DrawView;
 import knickknacker.sanderpunten.Rendering.Drawing.Tools.GLRenderCallback;
 import knickknacker.sanderpunten.Rendering.Drawing.Tools.GLRenderer;
 import knickknacker.sanderpunten.Rendering.Layout;
@@ -20,9 +21,12 @@ import knickknacker.sanderpunten.Rendering.LayoutMechanics.Touch.TouchListener;
  */
 
 public class LayoutManager implements GLRenderCallback {
+    public final static int INTERRUPT_CHANGE = 1;
+
     private ArrayList<Layout> layouts = null;
+    private ArrayList<LayoutBox> directAccess = null;
     private GLRenderer renderer;
-    private GLSurfaceView view;
+    private DrawView view;
     private Activity act;
     private TouchListener touchListener;
 
@@ -37,18 +41,21 @@ public class LayoutManager implements GLRenderCallback {
     private int using = 0;
     private int layoutsSet = 0;
 
+    private int interrupt = 0;
+
 
     public LayoutManager (Activity act, int layoutCount) {
         this.act = act;
         this.layoutCount = layoutCount < 1 ? 1 : layoutCount;
         layouts = new ArrayList<>();
+        directAccess = new ArrayList<>();
     }
 
     public void onCreate() {
         if (hasOpenGL2()) {
             renderer = new GLRenderer(act, this);
 
-            view = new GLSurfaceView(act);
+            view = new DrawView(act);
             view.setEGLContextClientVersion(2);
             view.setPreserveEGLContextOnPause(true);
             view.setRenderer(renderer);
@@ -61,7 +68,7 @@ public class LayoutManager implements GLRenderCallback {
         newLayout();
         touchListener = new TouchListener(this);
         view.setOnTouchListener(touchListener);
-        ((LayoutManagerCallback) act).surfaceCreatedCallback(layouts.get(using).getRoot());
+        ((LayoutManagerCallback) act).setupLayout(layouts.get(using).getRoot());
     }
 
     public void surfaceChangedCallback(int width, int height) {
@@ -72,14 +79,34 @@ public class LayoutManager implements GLRenderCallback {
         renderer.setWorldHeight(this.height);
 
         if (initial) {
-            unit = width > height ? (float) height / 1000 : (float) width / 1000;
             initial = false;
+            unit = width > height ? (float) height / 1000 : (float) width / 1000;
+            ((LayoutManagerCallback) act).loadLayout(unit);
             layoutInit(using);
             layoutDrawables(using, layouts.get(using).getRoot());
             renderer.setLayout(layouts.get(using));
         } else {
             layouts.get(using).getRoot().newResolution(this.width, this.height);
         }
+    }
+
+    public void onDrawCallback() {
+        if (interrupt != 0) {
+            handleInterrupt();
+        }
+    }
+
+    private void handleInterrupt() {
+        if (interrupt == INTERRUPT_CHANGE) {
+            Layout layout = layouts.get(using);
+            renderer.setLayout(layout);
+            if (!layout.isDrawInitialized()) {
+                renderer.setPrograms(layout.getDrawables());
+                layout.setDrawInitialized(true);
+            }
+        }
+
+        interrupt = 0;
     }
 
     private void layoutInit(int index) {
@@ -119,9 +146,9 @@ public class LayoutManager implements GLRenderCallback {
     public void switchLayout(int index) {
         layoutInit(index);
         layoutDrawables(index, layouts.get(index).getRoot());
+        touchListener.setRoot(layouts.get(index).getRoot());
         using = index;
-        renderer.newLayout(layouts.get(using));
-        renderer.interrupt(GLRenderer.INTERRUPT_CHANGE);
+        interrupt = INTERRUPT_CHANGE;
     }
 
     public void loadTextures(int[] ids) {
@@ -142,6 +169,21 @@ public class LayoutManager implements GLRenderCallback {
 
     public void onDestroy() {
         renderer.onDestroy();
+    }
+
+    public void addDirectAccess(LayoutBox box, String id) {
+        box.setId(id);
+        directAccess.add(box);
+    }
+
+    public LayoutBox getDirectAccess(String id) {
+        for (LayoutBox box : directAccess) {
+            if (box.getId().equals(id)) {
+                return box;
+            }
+        }
+
+        return null;
     }
 
     public GLSurfaceView getView() {
@@ -170,5 +212,9 @@ public class LayoutManager implements GLRenderCallback {
 
     public int[] getTextures() {
         return renderer.getTextures();
+    }
+
+    public Activity getActivity() {
+        return act;
     }
 }
