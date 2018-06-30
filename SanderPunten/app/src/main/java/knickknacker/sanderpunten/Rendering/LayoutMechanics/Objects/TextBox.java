@@ -16,7 +16,7 @@ public class TextBox extends LayoutBox {
     private Text textDraw = null;
     private boolean stayInsideBox = true;
     private boolean breakOnSpace = true;
-    private String text = null;
+    protected String text = null;
     private TextManager textManager = null;
     float[] textColor = null;
     private boolean first = true;
@@ -46,7 +46,7 @@ public class TextBox extends LayoutBox {
     public void initAll() {
         super.init();
         if (text != null) {
-            textDraw = textManager.getTextFit(text, 0, 0, textColor, width, height, stayInsideBox, breakOnSpace);
+            textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
             if (textDraw != null) {
                 textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
                 textDraw .setReady(true);
@@ -67,7 +67,7 @@ public class TextBox extends LayoutBox {
     }
 
     private void editText() {
-        Text newText = textManager.getTextFit(text, 0, 0, textColor, width, height, stayInsideBox, breakOnSpace);
+        Text newText = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
         if (newText != null) {
             textDraw.editPoints(newText.getPoints());
             textDraw.editTexels(newText.getTexcoords());
@@ -88,8 +88,12 @@ public class TextBox extends LayoutBox {
         return returnDrawables;
     }
 
-    public Text getText() {
+    public Text getTextDraw() {
         return textDraw;
+    }
+
+    public String getText() {
+        return text;
     }
 
     public void setStayInsideBox(boolean stayInsideBox) {

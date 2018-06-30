@@ -7,12 +7,6 @@ package knickknacker.sanderserver.TCP;
  */
 
 public interface TCPCallback {
-    void onConnect(String address, int port);
-
-    void onDisconnect(String address, int port);
-
-    void onRegister(String address, int port);
-
-    void onRegistered(String address, int port, long id);
+    void stringDisplay(String s);
 
 }

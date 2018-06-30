@@ -19,6 +19,7 @@ public abstract class ServiceTypes {
     public final static String OBJECT_TYPE = "service_object_name";
 
     /** The type of an object. */
+    public final static int OBJECT_PUBLIC_USER_DATA = 0;
 
     /** Broadcast reasons. */
     public final static String BROADCAST_TYPE = "broadcast_type";
@@ -28,4 +29,5 @@ public abstract class ServiceTypes {
         public final static byte REGISTER_RESPONSE = 3;
 
     public final static int WHAT_REGISTER = 0;
+    public final static int WHAT_LOGIN = 1;
 }

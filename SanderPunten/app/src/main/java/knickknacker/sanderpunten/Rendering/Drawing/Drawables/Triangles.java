@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 
 /**
  * Created by Niek on 25-5-2018.
+ *
+ * A child class of Drawable, used to draw Triangles with OpenGL ES 2.0.
  */
 
 public class Triangles extends Drawable {

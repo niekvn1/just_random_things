@@ -7,10 +7,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.preference.PreferenceManager;
 
 import knickknacker.sanderpunten.TCP.TCPCallback;
 import knickknacker.sanderpunten.TCP.TCPListener;
-import knickknacker.tcp.UserData;
+import knickknacker.tcp.Signables.PublicUserData;
 
 import static knickknacker.sanderpunten.Services.ServiceTypes.*;
 
@@ -28,7 +29,7 @@ public class NetworkService extends Service implements TCPCallback {
 
     @Override
     public void onCreate() {
-        this.con = new TCPListener(this);
+        this.con = new TCPListener(this, PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
     }
 
     @Override
@@ -42,13 +43,18 @@ public class NetworkService extends Service implements TCPCallback {
         return m_in.getBinder();
     }
 
-    /** Message Handler for messages from bound activities. */
+    /** RemoteCall Handler for messages from bound activities. */
     public class HandlerIn extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case WHAT_REGISTER:
                     con.register();
+                case WHAT_LOGIN:
+                    Object o = msg.getData().getSerializable(OBJECT_KEY);
+                    if (o instanceof PublicUserData) {
+                        con.login((PublicUserData) o);
+                    }
             }
         }
     }
@@ -79,10 +85,10 @@ public class NetworkService extends Service implements TCPCallback {
         sendBundle(bundle);
     }
 
-    public void onRegisterResponse(UserData userData) {
+    public void onRegisterResponse(PublicUserData publicUserData) {
         Bundle bundle = new Bundle();
         bundle.putByte(BROADCAST_TYPE, REGISTER_RESPONSE);
-        bundle.putSerializable(OBJECT_KEY, userData);
+        bundle.putSerializable(OBJECT_KEY, publicUserData);
         sendBundle(bundle);
     }
 

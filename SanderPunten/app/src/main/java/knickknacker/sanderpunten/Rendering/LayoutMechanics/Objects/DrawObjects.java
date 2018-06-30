@@ -16,34 +16,34 @@ public abstract class DrawObjects {
         return points;
     }
 
-    public static float[] getBackgroundPoints(float width, float height) {
+    public static float[] getBackgroundPoints(float width, float height, float z) {
         float[] points = {
-                0.0f, 0.0f,
-                0.0f, height,
-                width, 0.0f,
-                width, height
+                0.0f, 0.0f, z,
+                0.0f, height, z,
+                width, 0.0f, z,
+                width, height, z
         };
 
         return points;
     }
 
-    public static float[] getBackgroundPoints(float left, float right, float bottom, float top) {
+    public static float[] getBackgroundPoints(float left, float right, float bottom, float top, float z) {
         float[] points = {
-                left, bottom,
-                left, top,
-                right, bottom,
-                right, top
+                left, bottom, z,
+                left, top, z,
+                right, bottom, z,
+                right, top, z
         };
 
         return points;
     }
 
-    public static float[] getBackgroundPoints(float[] corners) {
+    public static float[] getBackgroundPoints(float[] corners, float z) {
         float[] points = {
-                corners[0], corners[2],
-                corners[0], corners[3],
-                corners[1], corners[2],
-                corners[1], corners[3]
+                corners[0], corners[2], z,
+                corners[0], corners[3], z,
+                corners[1], corners[2], z,
+                corners[1], corners[3], z
         };
 
         return points;

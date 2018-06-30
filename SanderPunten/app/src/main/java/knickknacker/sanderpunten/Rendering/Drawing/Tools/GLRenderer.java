@@ -3,6 +3,7 @@ package knickknacker.sanderpunten.Rendering.Drawing.Tools;
 import android.app.Activity;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -11,10 +12,13 @@ import javax.microedition.khronos.opengles.GL10;
 
 import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
 import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Text;
-import knickknacker.sanderpunten.Rendering.Layout;
 
 /**
  * Created by Niek on 22-5-2018.
+ *
+ * This class uses OpenGL ES 2.0 to draw Drawable.class. Drawables can be added to the list, they
+ * should be initialized and their programs should be set, before they are added. When this is done
+ * right they should be drawn on the screen without errors.
  */
 
 public class GLRenderer implements GLSurfaceView.Renderer {
@@ -27,36 +31,39 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     private int[] textures;
 
-    private Layout layout;
+    private ArrayList<Drawable> drawables;
 
-    private float width, height, worldWidth, worldHeight;
-    private boolean initial = true;
+    private float width, height;
 
     public GLRenderer(Activity act, GLRenderCallback callback) {
         this.act = act;
         this.callback = callback;
+        this.drawables = new ArrayList<>();
     }
 
     public void loadTextures(int[] ids) {
+        /** Load textures from the Drawable Resource. */
         textures = Textures.loadTexture(act, ids);
     }
 
-    public void setPrograms(ArrayList<Drawable> drawables) {
-        for (Drawable d : drawables) {
-            if (d instanceof Text) {
-                d.init();
-                d.setProgramHandle(programHandles[2]);
-            } else if (d.getTexture() == -1) {
-                d.init();
-                d.setProgramHandle(programHandles[0]);
-            } else {
-                d.init();
-                d.setProgramHandle(programHandles[1]);
-            }
-        }
+    @Override
+    public void onSurfaceCreated(GL10 unused, EGLConfig config) {
+        /** Surface is created, tell it to the callback. Initialize the shader programs. Set
+         * the needed OpenGL flags. */
+        callback.surfaceCreatedCallback();
+
+        initShader();
+
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        GLES20.glDepthFunc(GLES20.GL_LEQUAL);
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glClearColor(1f, 1f, 1f, 1f);
     }
 
     private void initShader() {
+        /** Create the needed OpenGL program, vertex and fragment handles and load the needed
+         * shader programs to the GPU. */
         Shaders.clear(programHandles, vertexHandles,
                 fragmentHandles);
 
@@ -78,40 +85,51 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-        callback.surfaceCreatedCallback();
-
-        initShader();
-
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-    @Override
     public void onSurfaceChanged(GL10 unused, int width_, int height_) {
-        callback.surfaceChangedCallback(width_, height_);
-
+        /** Surface has changed, tell it to the callback. Adjust the projection matrix to the
+         * new resolution. */
         width = width_;
         height = height_;
 
-        if (initial) {
-            setPrograms(layout.getDrawables());
-            layout.setDrawInitialized(true);
-            initial = false;
-        }
-
-        setProjections();
+        callback.surfaceChangedCallback(width_, height_);
 
         GLES20.glViewport(0, 0, width_, height_);
-        GLES20.glClearColor(1f, 1f, 1f, 1f);
-
-        System.out.println("Ready to draw: " + layout.getDrawables().size() + " layout.");
+        Log.i("GLRenderer","Drawables: " + drawables.size());
     }
 
-    private void setProjections() {
-        float[] scale = Matrices.getProjectionMatrix(width, height, worldWidth, worldHeight);
-        float[] trans = Matrices.getTranslateMatrix(worldWidth, worldHeight);
-        float[] proj = Matrices.matMult(scale, trans);
+    public void newDrawable(Drawable d) {
+        /** Adds a new drawable, assumes that it is already initialized. */
+        drawables.add(d);
+    }
+
+    public void initDrawables(ArrayList<Drawable> drawables) {
+        /** Initializes all the given drawables. */
+        for (Drawable d : drawables) {
+            initDrawable(d);
+        }
+    }
+
+    public void initDrawable(Drawable d) {
+        /** Initialize the drawable by calling its init function and setting the shader program. */
+        d.init();
+        setProgram(d);
+    }
+
+    private void setProgram(Drawable d) {
+        /** Set the program for the given drawable. The program is chosen by checking whether the
+         * drawable uses a texture, whether the drawable draws text or if it only draws something
+         * with a color. */
+        if (d instanceof Text) {
+            d.setProgramHandle(programHandles[2]);
+        } else if (d.getTexture() == -1) {
+            d.setProgramHandle(programHandles[0]);
+        } else {
+            d.setProgramHandle(programHandles[1]);
+        }
+    }
+
+    public void setProjection(float[] proj) {
+        /** Calculate the projection matrix and load it to the shader programs on the GPU. */
         int mat;
         for (int i = 0; i < programHandles.length; i++) {
             GLES20.glUseProgram(programHandles[i]);
@@ -121,6 +139,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     }
 
     private void drawList(ArrayList<Drawable> drawables) {
+        /** For a the drawables that should be drawn, check if it contains an update and draw it. */
         for (Drawable d : drawables) {
             d.checkForUpdates();
             d.draw();
@@ -129,53 +148,52 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 unused) {
+        /** For every frame, call the callback, draw all the drawables in the list. */
         callback.onDrawCallback();
 
-        int clearMask = GLES20.GL_COLOR_BUFFER_BIT;
+        int clearMask = GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT;
+        GLES20.glClearDepthf(1.0f);
         GLES20.glClear(clearMask);
 
-        drawList(layout.getDrawables());
+        drawList(drawables);
     }
 
     public void onDestroy() {
+        /** Destroy the resources. */
         Shaders.clear(programHandles, vertexHandles,
                 fragmentHandles);
         GLES20.glDeleteTextures(textures.length, textures, 0);
     }
 
-    public Layout getLayout() {
-        return layout;
+    public void destroy(ArrayList<Drawable> drawables) {
+        /** Tell these drawables to destroy there resources (VBOs) */
+        for (Drawable d : drawables) {
+            d.destroy();
+        }
     }
 
-    public void setLayout(Layout layout) {
-        this.layout = layout;
+    public ArrayList<Drawable> getDrawables() {
+        /** Get the drawables. */
+        return drawables;
     }
 
-    public void setInitial(boolean initial) {
-        this.initial = initial;
+    public void setDrawables(ArrayList<Drawable> drawables) {
+        /** Set the drawables, assumes they are initialized. */
+        this.drawables = drawables;
+    }
+
+    public void removeDrawable(Drawable d) {
+        /** Remove the drawable. */
+        this.drawables.remove(d);
     }
 
     public int[] getTextures() {
+        /** Get the loaded textures. */
         return textures;
     }
 
-    public float getWorldWidth() {
-        return worldWidth;
-    }
-
-    public void setWorldWidth(float worldWidth) {
-        this.worldWidth = worldWidth;
-    }
-
-    public float getWorldHeight() {
-        return worldHeight;
-    }
-
-    public void setWorldHeight(float worldHeight) {
-        this.worldHeight = worldHeight;
-    }
-
     public void printArray(float[] f, int n) {
+        /** Fancy array print function for testing. */
         System.out.println("<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
         for (int i = 0; i < f.length; i += n) {
             for (int j = 0; j < n; j++) {

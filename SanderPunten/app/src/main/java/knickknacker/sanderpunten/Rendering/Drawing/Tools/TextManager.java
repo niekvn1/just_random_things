@@ -79,42 +79,52 @@ public class TextManager {
 
 
     public String getFontFile() {
+        /** Get the file which will be used to load the font. */
         return fontFile;
     }
 
     public void setFontFile(String fontFile) {
+        /** Set the file which will be used to load the font. */
         this.fontFile = fontFile;
     }
 
     public int getSize() {
+        /** Get the font size. */
         return size;
     }
 
     public void setSize(int size) {
+        /** Set the font size. */
         this.size = size;
     }
 
     public float getPadX() {
+        /** Get the x padding. */
         return padX;
     }
 
     public void setPadX(float padX) {
+        /** Set the x padding. */
         this.padX = padX;
     }
 
     public float getPadY() {
+        /** Get the y padding. */
         return padY;
     }
 
     public void setPadY(float padY) {
+        /** Set the y padding. */
         this.padY = padY;
     }
 
     public boolean isFontLoaded() {
+        /** Check if the manager has a font loaded. */
         return fontLoaded;
     }
 
     public boolean load(float unit) {
+        /** Load the font. */
         fontPadX = padX * unit;
         fontPadY = padY * unit;
         fontSize = (int) (size * unit);
@@ -181,6 +191,7 @@ public class TextManager {
             textureSize = 2048;
         }
 
+        /** Load the texture. */
         Bitmap bitmap = Bitmap.createBitmap(textureSize, textureSize, Bitmap.Config.ALPHA_8);
         Canvas canvas = new Canvas(bitmap);
         bitmap.eraseColor(0x00000000);
@@ -221,7 +232,8 @@ public class TextManager {
     }
 
 
-    public Text getText(String text, float x, float y, float[] color)  {
+    public Text getText(String text, float x, float y, float[] color, float z)  {
+        /** Get a Drawable/Triangles/Text to draw the given String. */
         if (!fontLoaded) {
             return null;
         }
@@ -234,14 +246,14 @@ public class TextManager {
         letterX = x;
         letterY = y;
 
-        float[] points = new float[len * 6 * 2];
+        float[] points = new float[len * 6 * 3];
         float[] texels = new float[len * 6 * 2];
         for (int i = 0; i < len; i++)  {
             int c = (int)text.charAt(i) - START;
             if (c < 0 || c >= COUNT)
                 c = UNKNOWN;
 
-            insertData(points, texels, i, letterX, letterY, chrHeight, chrWidth, charRegion[c]);
+            insertData(points, texels, i, letterX, letterY, chrHeight, chrWidth, charRegion[c], z);
 
             letterX += (charWidths[c] + spaceX ) * scaleX;    // Advance X Position by Scaled Character Width
         }
@@ -257,7 +269,10 @@ public class TextManager {
         return c;
     }
 
-    public Text getTextFit(String text, float x, float y, float[] color, float lineWidth, float boxHeight, boolean cut, boolean breakOnSpace)  {
+    public Text getTextFit(String text, float x, float y, float z, float[] color, float lineWidth,
+                           float boxHeight, boolean cut, boolean breakOnSpace)  {
+        /** Get a Drawable/Triangles/Text to draw the given String which fits in the given space
+         * and cut of the lines on whitespaces.. */
         if (!fontLoaded) {
             return null;
         }
@@ -270,7 +285,7 @@ public class TextManager {
         letterX = x;
         letterY = y;
 
-        float[] points = new float[len * 6 * 2];
+        float[] points = new float[len * 6 * 3];
         float[] texels = new float[len * 6 * 2];
         int wordTemp = 0;
         float wordWidth = 0f;
@@ -283,7 +298,7 @@ public class TextManager {
                 if (letterX + wordWidth <= lineWidth) {
                     for (int j = i - wordTemp; j <= i; j++) {
                         int c = getChar(text, j);
-                        insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c]);
+                        insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c], z);
                         letterX += (charWidths[c] + spaceX ) * scaleX;
                     }
                 /** Else Go to the next line and insert it there, split the word to multiple lines
@@ -307,7 +322,7 @@ public class TextManager {
                             }
                         }
 
-                        insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c]);
+                        insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c], z);
                         letterX += (charWidths[c] + spaceX) * scaleX;
                     }
                 }
@@ -335,7 +350,7 @@ public class TextManager {
                     }
                 }
 
-                insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c]);
+                insertData(points, texels, j, letterX, letterY, chrHeight, chrWidth, charRegion[c], z);
                 letterX += (charWidths[c] + spaceX) * scaleX;
             }
         }
@@ -344,19 +359,26 @@ public class TextManager {
     }
 
     private void insertData(float[] points, float[] texels, int i, float letterX, float letterY,
-                            float chrHeight, float chrWidth, TextureRegion region) {
-        points[i * 6 * 2] = letterX;
-        points[i * 6 * 2 + 1] = letterY - chrHeight;
-        points[i * 6 * 2 + 2] = letterX;
-        points[i * 6 * 2 + 3] = letterY;
-        points[i * 6 * 2 + 4] = letterX + chrWidth;
-        points[i * 6 * 2 + 5] = letterY - chrHeight;
-        points[i * 6 * 2 + 6] = letterX + chrWidth;
-        points[i * 6 * 2 + 7] = letterY;
-        points[i * 6 * 2 + 8] = letterX;
-        points[i * 6 * 2 + 9] = letterY;
-        points[i * 6 * 2 + 10] = letterX + chrWidth;
-        points[i * 6 * 2 + 11] = letterY - chrHeight;
+                            float chrHeight, float chrWidth, TextureRegion region, float z) {
+        /** Insert the given data into the arrays for the Drawable. */
+        points[i * 6 * 3] = letterX;
+        points[i * 6 * 3 + 1] = letterY - chrHeight;
+        points[i * 6 * 3 + 2] = z;
+        points[i * 6 * 3 + 3] = letterX;
+        points[i * 6 * 3 + 4] = letterY;
+        points[i * 6 * 3 + 5] = z;
+        points[i * 6 * 3 + 6] = letterX + chrWidth;
+        points[i * 6 * 3 + 7] = letterY - chrHeight;
+        points[i * 6 * 3 + 8] = z;
+        points[i * 6 * 3 + 9] = letterX + chrWidth;
+        points[i * 6 * 3 + 10] = letterY;
+        points[i * 6 * 3 + 11] = z;
+        points[i * 6 * 3 + 12] = letterX;
+        points[i * 6 * 3 + 13] = letterY;
+        points[i * 6 * 3 + 14] = z;
+        points[i * 6 * 3 + 15] = letterX + chrWidth;
+        points[i * 6 * 3 + 16] = letterY - chrHeight;
+        points[i * 6 * 3 + 17] = z;
 
         texels[i * 6 * 2] = region.u1;
         texels[i * 6 * 2 + 1] = region.v2;
@@ -373,18 +395,22 @@ public class TextManager {
     }
 
     public void setScaleX(float scaleX) {
+        /** Set the x scale. */
         this.scaleX = scaleX;
     }
 
     public void setScaleY(float scaleY) {
+        /** Set the y scale. */
         this.scaleY = scaleY;
     }
 
     public int getTextureId() {
+        /** Get the texture id. */
         return textureId;
     }
 
     public float getTextHeight() {
+        /** Get the text height. */
         return cellHeight * scaleY;
     }
 }

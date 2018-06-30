@@ -5,6 +5,7 @@ package knickknacker.sanderpunten.Rendering.Drawing.Tools;
  */
 
 public abstract class Matrices {
+    /** Identity matrix. */
     public static final float[] identity = {
                 1f, 0f, 0f, 0f,
                 0f, 1f, 0f, 0f,
@@ -13,6 +14,7 @@ public abstract class Matrices {
     };
 
     public static float[] getProjectionMatrix(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
+        /** Get the Projection matrix for the given widths and heights. */
         float[] scales = getScale(screenWidth, screenHeight, worldWidth, worldHeight);
         float[] m = {
                 scales[0], 0f, 0f, 0f,
@@ -25,6 +27,7 @@ public abstract class Matrices {
     }
 
     public static float[] getTranslationMatrix(float x, float y) {
+        /** Get a translation matrix for the given x and y translations. */
         float[] m = {
                 1f, 0f, 0f, x,
                 0f, 1f, 0f, y,
@@ -36,17 +39,12 @@ public abstract class Matrices {
     }
 
     public static float[] getTranslateMatrix(float worldWidth, float worldHeight) {
-        float[] m = {
-                1f, 0f, 0f, -worldWidth / 2,
-                0f, 1f, 0f, -worldHeight / 2,
-                0f, 0f, 1f, 0f,
-                0f, 0f, 0f, 1f
-        };
-
-        return m;
+        /** Get the translation matrix for the given world width and height. */
+        return getTranslationMatrix(-worldWidth / 2, -worldHeight / 2);
     }
 
     public static float[] matMult(float[] A, float[] B) {
+        /** Return the 4x4 matrix multiplication result. */
         float[] C = {
                 A[0] * B[0] + A[1] * B[4] + A[2] * B[8] + A[3] * B[12],
                 A[0] * B[1] + A[1] * B[5] + A[2] * B[9] + A[3] * B[13],
@@ -70,6 +68,7 @@ public abstract class Matrices {
     }
 
     private static float[] getScale(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
+        /** Get the x and y scale factors */
         float widthRatio = worldWidth / screenWidth;
         float heightRatio = worldHeight / screenHeight;
         float screenScale;

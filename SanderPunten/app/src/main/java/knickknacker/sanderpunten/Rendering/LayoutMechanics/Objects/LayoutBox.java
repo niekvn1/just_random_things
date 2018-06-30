@@ -30,11 +30,13 @@ public class LayoutBox {
     protected LayoutManager manager = null;
     protected TouchCallback touch;
     protected String id = "";
+    protected float zIndex = 1.0f;
 
     public LayoutBox(LayoutManager manager, LayoutBox parent) {
         this.manager = manager;
         this.parent = parent;
         if (parent != null) {
+            this.zIndex = parent.getzIndex() - 0.0001f;
             this.parent.addChild(this);
         }
     }
@@ -145,7 +147,6 @@ public class LayoutBox {
 
         this.width = this.right - this.left;
         this.height = this.top - this.bottom;
-        System.out.println("Resolution Chain. " + left + " " + right + " " + bottom + " " + top + " " + width + " " + height);
 
         if (edges == null) {
             toDrawable(false);
@@ -164,15 +165,15 @@ public class LayoutBox {
         ArrayList<Drawable> returnDrawables = new ArrayList<>();
         if (drawable == null) {
             if (backgroundTexture != -1 || color != null) {
-                    drawable = new TriangleStrip(DrawObjects.getBackgroundPoints(this.getCorners()),
-                                                   color, backgroundTexture,
-                                                   DrawObjects.get_background_texcoords());
+                    drawable = new TriangleStrip(DrawObjects.getBackgroundPoints(this.getCorners(), zIndex),
+                                                 color, backgroundTexture,
+                                                 DrawObjects.get_background_texcoords());
                     drawable.setTransformMatrix(transformMatrix);
                     drawable.setReady(true);
                     returnDrawables.add(drawable);
             }
         } else {
-            drawable.editPoints(DrawObjects.getBackgroundPoints(this.getCorners()));
+            drawable.editPoints(DrawObjects.getBackgroundPoints(this.getCorners(), zIndex));
         }
 
         if (edges) {
@@ -324,16 +325,24 @@ public class LayoutBox {
      * Edge function are for testing, they are used to draw edges around boxes.
      * */
     private float[] getEdge(float left, float right, float bottom, float top) {
-        return new float[] {left, bottom, left, top, right, bottom, right, top};
+        return new float[] {left, bottom, zIndex, left, top, zIndex, right, bottom, zIndex, right, top, zIndex};
     }
 
     private float[][] getEdges(float thickness) {
-        float[][] edges = new float[4][4 * 2]; // edges * points_per_edge * floats_per_point
+        float[][] edges = new float[4][4 * 3]; // edges * points_per_edge * floats_per_point
         edges[0] = getEdge(left, left + thickness, bottom, top);
         edges[1] = getEdge(left, right, top - thickness, top);
         edges[2] = getEdge(right - thickness, right, bottom, top);
         edges[3] = getEdge(left, right, bottom, bottom + thickness);
 
         return edges;
+    }
+
+    public float getzIndex() {
+        return zIndex;
+    }
+
+    public void setzIndex(float zIndex) {
+        this.zIndex = zIndex;
     }
 }

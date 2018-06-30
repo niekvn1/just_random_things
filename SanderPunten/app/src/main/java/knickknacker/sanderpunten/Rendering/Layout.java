@@ -8,43 +8,80 @@ import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.LayoutBox;
 
 /**
  * Created by Niek on 2-6-2018.
+ *
+ * This class holds the root of a layout tree node. It contains functions to manage the
+ * responsiveness of the layout and to create and update the drawables of the LayoutBoxes.
  */
 
 public class Layout {
     private LayoutBox root;
     private ArrayList<Drawable> drawables;
+    private boolean initialized = false;
     private boolean drawInitialized = false;
+    private boolean edges;
+    private boolean used = false;
 
-    public Layout(LayoutManager manager) {
+    public Layout(LayoutManager manager, boolean edges) {
         this.root = new LayoutBox(manager, null);
         drawables = new ArrayList<>();
+        this.edges = edges;
+    }
+
+    public void init(float width, float height) {
+        /** Initialize the layout with a width and a height, this will start a traversal of the
+         * LayoutBox tree, editing their position points. */
+        root.init(width, height);
+        root.initChilderen();
+        initDrawables(drawables, root);
+        initialized = true;
+    }
+
+    private void initDrawables(ArrayList<Drawable> collection, LayoutBox layoutBox) {
+        /** Traverse the LayoutBox tree and initialize their drawable objects. */
+        ArrayList<Drawable> drawables = layoutBox.toDrawable(edges);
+        for (Drawable d : drawables) {
+            if (d != null) {
+                collection.add(d);
+            }
+        }
+
+        for (LayoutBox child : layoutBox.getChilderen()) {
+            initDrawables(collection, child);
+        }
     }
 
     public LayoutBox getRoot() {
+        /** Returns the root of the LayoutBox tree. */
         return root;
     }
 
-    public void setRoot(LayoutBox root) {
-        this.root = root;
-    }
-
     public ArrayList<Drawable> getDrawables() {
+        /** Get all the drawables of this layout. */
         return drawables;
     }
 
-    public void setDrawables(ArrayList<Drawable> drawables) {
-        this.drawables = drawables;
-    }
-
-    public void addDrawable(Drawable d) {
-        drawables.add(d);
-    }
-
     public boolean isDrawInitialized() {
+        /** Check if this layout has been initialized. */
         return drawInitialized;
     }
 
     public void setDrawInitialized(boolean drawInitialized) {
+        /** Tell the layout that all the drawables are initialized by the GLRenderer. */
         this.drawInitialized = drawInitialized;
+    }
+
+    public boolean isInitialized() {
+        /** Check if this layouts drawables have been initialized by the GLRenderer. */
+        return initialized;
+    }
+
+    public boolean isUsed() {
+        /** Check if the layout is being used. */
+        return used;
+    }
+
+    public void setUsed(boolean used) {
+        /** Set used. */
+        this.used = used;
     }
 }

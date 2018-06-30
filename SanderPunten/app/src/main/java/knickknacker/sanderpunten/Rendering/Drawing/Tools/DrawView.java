@@ -2,55 +2,95 @@ package knickknacker.sanderpunten.Rendering.Drawing.Tools;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.text.SpannableStringBuilder;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.ViewTreeObserver;
+
+import knickknacker.sanderpunten.Input.Keyboard;
+import knickknacker.sanderpunten.Input.KeyboardCallback;
 
 
 /**
  * Created by Niek on 3-6-2018.
+ *
+ * A GLSurfaceView extended with functions to handle the SoftInputKeyboard input.
  */
 
 public class DrawView extends GLSurfaceView {
+    private SpannableStringBuilder text;
+    private KeyboardCallback callback;
+    private int defaultHeight = -1;
+    private int height = -1;
+
     public DrawView(Context context) {
         super(context);
         this.setFocusable(true);
         this.setFocusableInTouchMode(true);
+        text = new SpannableStringBuilder();
+
+        this.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                adjustHeight();
+            }
+        });
     }
 
-//    private static KeyboardHandler softKeyboardHandler;
-//    private final static int SHOW_IME_KEYBOARD = 0;
-//    private final static int HIDE_IME_KEYBOARD = 1;
-//    private static EditText editText;
-//    private static InputMethodManager imm;
-//
-//    public DrawView(Context context) {
-//        super(context);
-//        editText = new EditText(context);
-//        imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-//        softKeyboardHandler = new KeyboardHandler();
-//    }
-//
-//    public static void showIMEKeyboard() {
-//        softKeyboardHandler.sendEmptyMessage(SHOW_IME_KEYBOARD);
-//    }
-//
-//    public static void hideImeKeyboard() {
-//        softKeyboardHandler.sendEmptyMessage(HIDE_IME_KEYBOARD);
-//    }
+    private void adjustHeight() {
+        if (defaultHeight == -1) {
+            defaultHeight = this.getHeight();
+        } else {
+            height = this.getHeight();
+        }
 
-//    private static class KeyboardHandler extends Handler {
-//        public void handleMessage(Message msg) {
-//            switch(msg.what) {
-//                case SHOW_IME_KEYBOARD:
-//                    editText.requestFocus();
-//                    imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
-//                    System.out.println("SHOW KEYBOARD");
-//                    break;
-//                case HIDE_IME_KEYBOARD:
-//                    imm.hideSoftInputFromInputMethod(editText.getWindowToken(), 0);
-//                    System.out.println("HIDE KEYBOARD");
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//    }
+//        int keyboardHeight = defaultHeight - height;
+        if (callback != null) {
+            callback.newHeight(height);
+        }
+
+        Log.i("Layout Change", "new height: " + height);
+    }
+
+    public void showKeyboard(boolean show) {
+        if (show) {
+            requestFocus();
+            Keyboard.show(this);
+        } else {
+            Keyboard.hide(this);
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        /** When a key is pressed down, do ... */
+        boolean code = super.onKeyDown(keyCode, event);
+        return code;
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        /** When a key is released, send the keycode and event to the KeyboardCallback. */
+        if (callback != null) {
+            callback.keyboardInput(keyCode, event);
+        }
+
+        boolean code = super.onKeyUp(keyCode, event);
+        return code;
+    }
+
+    public SpannableStringBuilder getText() {
+        /** Return SpannableStringBuilder. */
+        return text;
+    }
+
+    public void setText(SpannableStringBuilder text) {
+        /** Set the SpannableStringBuilder. */
+        this.text = text;
+    }
+
+    public void setKeyboardCallback(KeyboardCallback callback) {
+        /** Set the KeyboardCallback. */
+        this.callback = callback;
+    }
 }

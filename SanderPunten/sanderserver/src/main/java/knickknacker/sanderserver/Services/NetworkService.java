@@ -30,7 +30,7 @@ public class NetworkService extends Service implements TCPCallback {
 
     @Override
     public void onCreate() {
-        this.con = new TCPListener(this);
+        this.con = new TCPListener(this, this);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class NetworkService extends Service implements TCPCallback {
         return m_in.getBinder();
     }
 
-    /** Message Handler for messages from bound activities. */
+    /** RemoteCall Handler for messages from bound activities. */
     public class HandlerIn extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -62,23 +62,5 @@ public class NetworkService extends Service implements TCPCallback {
         bundle.putString(STRING_KEY, text);
         intent.putExtras(bundle);
         sendBroadcast(intent);
-    }
-
-    public void onConnect(String address, int port) {
-        stringDisplay("[Connection: " + address + ":" + port + "]");
-
-    }
-
-    /** Send connection loss signal to activity. */
-    public void onDisconnect(String address, int port) {
-        stringDisplay("[Disconnect: " + address + ":" + port + "]");
-    }
-
-    public void onRegister(String address, int port) {
-        stringDisplay("[Register Request: " + address + ":" + port + "]");
-    }
-
-    public void onRegistered(String address, int port, long id) {
-        stringDisplay("[Registered: " + address + ":" + port + "] id: " + id);
     }
 }

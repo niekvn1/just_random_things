@@ -1,6 +1,6 @@
 package knickknacker.sanderpunten.TCP;
 
-import knickknacker.tcp.UserData;
+import knickknacker.tcp.Signables.PublicUserData;
 
 /**
  * Created by Niek on 28-10-17.
@@ -15,5 +15,5 @@ public interface TCPCallback {
 
     void onDisconnect();
 
-    void onRegisterResponse(UserData userData);
+    void onRegisterResponse(PublicUserData publicUserData);
 }

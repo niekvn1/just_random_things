@@ -2,6 +2,8 @@ package knickknacker.sanderpunten.Rendering.Drawing.Properties;
 
 /**
  * Created by Niek on 22-5-2018.
+ *
+ * Colors used to draw.
  */
 
 public abstract class Colors {
@@ -12,11 +14,13 @@ public abstract class Colors {
     public final static float[] BLACK = {0.0f, 0.0f, 0.0f, 1.0f};
     public final static float[] GRAY = {0.5f, 0.5f, 0.5f, 1.0f};
 
-    public final static float[] RED_TRANS = {1.0f, 0.0f, 0.0f, 0.6f};
-    public final static float[] GREEN_TRANS = {0.0f, 1.0f, 0.0f, 0.6f};
-    public final static float[] BLUE_TRANS = {0.0f, 0.0f, 1.0f, 0.6f};
-    public final static float[] WHITE_TRANS = {1.0f, 1.0f, 1.0f, 0.6f};
-    public final static float[] BLACK_TRANS = {0.0f, 0.0f, 0.0f, 0.6f};
-    public final static float[] GRAY_TRANS = {0.5f, 0.5f, 0.5f, 0.6f};
+    public final static float[] TRANS = {1.0f, 1.0f, 1.0f, 0.0f};
+    public final static float[] RED_ALPHA_6 = {1.0f, 0.0f, 0.0f, 0.6f};
+    public final static float[] GREEN_ALPHA_6 = {0.0f, 1.0f, 0.0f, 0.6f};
+    public final static float[] BLUE_ALPHA_6 = {0.0f, 0.0f, 1.0f, 0.6f};
+    public final static float[] WHITE_ALPHA_6 = {1.0f, 1.0f, 1.0f, 0.6f};
+    public final static float[] BLACK_ALPHA_6 = {0.0f, 0.0f, 0.0f, 0.6f};
+    public final static float[] GRAY_ALPHA_6 = {0.5f, 0.5f, 0.5f, 0.6f};
 
+    public final static float[] RED_5_ALPHA_6 = {1.0f, 0.0f, 0.0f, 0.6f};
 }

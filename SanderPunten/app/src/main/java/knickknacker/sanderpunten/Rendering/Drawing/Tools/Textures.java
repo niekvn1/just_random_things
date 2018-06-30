@@ -8,10 +8,13 @@ import android.opengl.GLUtils;
 
 /**
  * Created by Niek on 20-1-2018.
+ *
+ * Functions for using Textures with OpenGL ES 2.0.
  */
 
 public abstract class Textures {
     public static final float[] rectangleCoords = {
+    /** Return Texture coordinates for a rectangle. */
             0f, 1f,
             0f, 0f,
             1f, 1f,
@@ -19,6 +22,7 @@ public abstract class Textures {
     };
 
     public static int[] loadTexture(Context context, int[] ids) {
+        /** Load the given textures from the Drawables resource. */
         int[] textures = new int[ids.length];
         GLES20.glGenTextures(ids.length, textures, 0);
 
@@ -26,7 +30,6 @@ public abstract class Textures {
             throw new RuntimeException("Error loading texture");
 
         for (int i = 0; i < ids.length; i++) {
-            // bind the texture and set parameters
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[i]);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
@@ -42,6 +45,7 @@ public abstract class Textures {
     }
 
     public static int[] loadBitmapTexture(Bitmap bitmap) {
+        /** Load bitmap as a texture. */
         int[] textureIds = new int[1];
         GLES20.glGenTextures(1, textureIds, 0);
 

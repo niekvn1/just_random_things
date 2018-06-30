@@ -1,1 +1,1 @@
-include ':app', ':sanderserver', ':tcp'
+include ':app', ':sanderserver', ':tcp', ':rsa'

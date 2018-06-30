@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 
 /**
  * Created by Niek on 22-5-2018.
+ *
+ * A child class of Drawable, used to draw Triangle Strips with OpenGL ES 2.0.
  */
 
 public class TriangleStrip extends Drawable {
