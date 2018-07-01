@@ -17,6 +17,12 @@ public class PublicUserData extends Signable implements Serializable {
         name = "";
     }
 
+    public PublicUserData(PublicUserData data) {
+        this.id = data.getId();
+        this.name = data.getName();
+        this.sanderpunten = data.getSanderpunten();
+    }
+
     public int getId() {
         return id;
     }

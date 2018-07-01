@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.TCP;
 
+import java.io.Serializable;
+
 import knickknacker.tcp.Signables.PublicUserData;
 
 /**
@@ -9,11 +11,5 @@ import knickknacker.tcp.Signables.PublicUserData;
  */
 
 public interface TCPCallback {
-    void connectionFailed();
-
-    void onConnect();
-
-    void onDisconnect();
-
-    void onRegisterResponse(PublicUserData publicUserData);
+    void call(String func, Serializable args);
 }

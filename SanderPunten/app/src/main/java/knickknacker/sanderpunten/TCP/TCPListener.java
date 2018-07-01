@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 
 import knickknacker.RSA.RSA;
+import knickknacker.sanderpunten.Services.NetworkServiceProtocol;
 import knickknacker.tcp.Protocol.SanderServerProtocol;
 import knickknacker.tcp.RemoteCall;
 import knickknacker.tcp.Serialize;
@@ -71,13 +72,15 @@ public class TCPListener implements TCPClientUser {
     }
 
     private void saveKeys() {
+        /** Save the public and private keys for the client. */
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PRIVATE_KEY_KEY, RSA.saveKey(privateKey));
         editor.putString(PUBLIC_KEY_KEY, RSA.saveKey(publicKey));
         editor.apply();
     }
 
-    public void register() {
+    public void register(Object args) {
+        /** Send a register message to the server. */
         RemoteCall call = new RemoteCall(SanderServerProtocol.FUNC_REGISTER,
                                          settings.getString(PUBLIC_KEY_KEY, null),
                                          null);
@@ -85,26 +88,50 @@ public class TCPListener implements TCPClientUser {
     }
 
     private void onRegisterResponse(Object args) {
+        /** Handle the response of the server on the register message. */
         if (args instanceof PublicUserData) {
             PublicUserData publicUserData = ((PublicUserData) args);
             Log.i("ServerResponse", "Successful register");
-            callback.onRegisterResponse(publicUserData);
+            callback.call(NetworkServiceProtocol.ON_REGISTER_RESPONSE, publicUserData);
         }
     }
 
-    public void login(PublicUserData data) {
-        RemoteCall call = callWithSign(SanderServerProtocol.FUNC_LOGIN, data);
-        if (call != null) {
-            client.sendData(call.encode());
+    public void login(Object args) {
+        /** Send a login message to the server. */
+        if (args instanceof PublicUserData) {
+            PublicUserData data = (PublicUserData) args;
+            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_LOGIN, data);
+            if (call != null) {
+                client.sendData(call.encode());
+            }
         }
     }
 
     public void onLoginResponse(Object args) {
+        /** Handle the response of the server on the login message. */
         if (args instanceof String) {
             String response = (String) args;
             if (response.equals(SanderServerProtocol.STATUS_OK)) {
-                Log.i("ServerResponse", "Successful login");
+                callback.call(NetworkServiceProtocol.ON_LOGIN_RESPONSE, null);
             }
+        }
+    }
+
+    public void changedName(Object args) {
+        if (args instanceof PublicUserData) {
+            PublicUserData data = (PublicUserData) args;
+            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_NAME_CHANGE, data);
+            if (call != null) {
+                client.sendData(call.encode());
+            }
+        }
+    }
+
+    public void onNameChangeResponse(Object args) {
+        if (args instanceof PublicUserData) {
+            callback.call(NetworkServiceProtocol.ON_NAME_CHANGE_RESPONSE, (PublicUserData) args);
+        } else if (args instanceof String) {
+            callback.call(NetworkServiceProtocol.ON_NAME_CHANGE_RESPONSE, (String) args);
         }
     }
 
@@ -137,10 +164,10 @@ public class TCPListener implements TCPClientUser {
 
     public void onConnect(boolean connected) {
         if (connected) {
-            callback.onConnect();
+            callback.call(NetworkServiceProtocol.ON_CONNECT, null);
             client.startReceiving();
         } else {
-            callback.connectionFailed();
+            callback.call(NetworkServiceProtocol.ON_CONNECTION_FAILED, null);
         }
     }
 
@@ -156,7 +183,7 @@ public class TCPListener implements TCPClientUser {
         }
     }
 
-    private void call(String func, Object args) {
+    public void call(String func, Object args) {
         try {
             Method method = TCPListener.class.getDeclaredMethod(func, Object.class);
             method.invoke(this, args);
@@ -169,8 +196,7 @@ public class TCPListener implements TCPClientUser {
         }
     }
 
-    /** Handle the disconnection of a member. */
     public void onDisconnect() {
-        callback.onDisconnect();
+        callback.call(NetworkServiceProtocol.ON_DISCONNECT, null);
     }
 }

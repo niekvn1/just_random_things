@@ -15,48 +15,36 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-import knickknacker.sanderpunten.ActivityTools.Popup;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.Button;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.ButtonMenu;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.LayoutBox;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.TextBar;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.TextBarCallback;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Objects.TextBox;
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.LayoutManager;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.LayoutManagerCallback;
-import knickknacker.sanderpunten.Rendering.LayoutMechanics.Touch.TouchCallback;
+import knickknacker.sanderpunten.ActivityTools.Setups.ChatMenu;
+import knickknacker.sanderpunten.ActivityTools.Setups.MainMenu;
+import knickknacker.sanderpunten.ActivityTools.Setups.Popup;
+import knickknacker.sanderpunten.ActivityTools.Setups.MainMenuCallback;
+import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenu;
+import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenuCallback;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManagerCallback;
 import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
 import knickknacker.tcp.Signables.PublicUserData;
 
-import static knickknacker.sanderpunten.Services.ServiceTypes.BROADCAST_KEY;
-import static knickknacker.sanderpunten.Services.ServiceTypes.BROADCAST_TYPE;
-import static knickknacker.sanderpunten.Services.ServiceTypes.CONNECTED;
-import static knickknacker.sanderpunten.Services.ServiceTypes.DISCONNECTED;
-import static knickknacker.sanderpunten.Services.ServiceTypes.FAILED_TO_CONNECT;
-import static knickknacker.sanderpunten.Services.ServiceTypes.OBJECT_KEY;
-import static knickknacker.sanderpunten.Services.ServiceTypes.OBJECT_PUBLIC_USER_DATA;
-import static knickknacker.sanderpunten.Services.ServiceTypes.REGISTER_RESPONSE;
-import static knickknacker.sanderpunten.Services.ServiceTypes.WHAT_LOGIN;
-import static knickknacker.sanderpunten.Services.ServiceTypes.WHAT_REGISTER;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.*;
 
-public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, TextBarCallback {
+public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, MainMenuCallback,
+        ProfileMenuCallback {
     private final byte STATE_MAIN = 0;
     private final byte STATE_PROFILE = 1;
     private final byte STATE_POPUP = 2;
+    private final byte STATE_CHAT = 3;
 
-    private final int LAYOUT_COUNT = 3;
+    private final int LAYOUT_COUNT = 4;
 
     public static final String NAME_KEY = "userdata_name";
     public static final String ID_KEY = "userdata_id";
-
-    private final String TEXTBOX_NAME = "textview_name";
-    private final String TEXTBAR_NAME = "textbar_name";
 
     private LayoutManager layoutManager;
     private int[] menuTextureIds = {R.drawable.struissander, R.drawable.sanderstrand,
@@ -66,16 +54,14 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     private byte menuState = STATE_MAIN;
 
     private boolean mainLoaded = false;
-    private boolean profileLoaded = false;
 
     private LocalStorage storage = null;
     private SharedPreferences settings;
+    private boolean logIn = false;
 
-    private TextManager font30;
-    private TextManager font35;
-    private TextManager font40;
-    private TextManager font45;
-
+    private MainMenu mainMenu;
+    private ProfileMenu profileMenu;
+    private ChatMenu chatMenu;
     private Popup popup;
 
 
@@ -100,25 +86,24 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
-            byte type = bundle.getByte(BROADCAST_TYPE);
-            switch (type) {
-                case FAILED_TO_CONNECT:
-                    popup("Could not establish a connection with the server.");
-                    break;
-                case CONNECTED:
-                    Toast.makeText(context, "Connected!", Toast.LENGTH_SHORT).show();
-                    onConnect();
-                    break;
-                case DISCONNECTED:
-                    popup("Lost connection with the server, restart the app. If that doesn't work, the server is probably down.");
-                    break;
-                case REGISTER_RESPONSE:
-                    Toast.makeText(context, "Register Response!", Toast.LENGTH_SHORT).show();
-                    handleRegisterResponse((PublicUserData) bundle.getSerializable(OBJECT_KEY));
-                    break;
-            }
+            String func = bundle.getString(FUNC_NAME, "");
+            Object args = bundle.getSerializable(FUNC_ARGS);
+            call(func, args);
         }
     };
+
+    public void call(String func, Object args) {
+        try {
+            Method method = MainActivity.class.getDeclaredMethod(func, Object.class);
+            method.invoke(this, args);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +123,144 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
 
         getApplicationContext().bindService(new Intent(this, NetworkService.class), this.rsc,
                 Context.BIND_AUTO_CREATE);
+    }
+
+    private void onConnect(Object args) {
+        Toast.makeText(this, "Connected!", Toast.LENGTH_SHORT).show();
+        logIn = true;
+        if (storage.getPublicUserData().getId() == -1) {
+            register();
+        } else {
+            login();
+        }
+    }
+
+    private void register() {
+        ServiceFunctions.call(rsm, REGISTER, null);
+    }
+
+    private void onRegisterResponse(Object args) {
+        Toast.makeText(this, "Register Response!", Toast.LENGTH_SHORT).show();
+        if (args instanceof PublicUserData) {
+            PublicUserData publicUserData = (PublicUserData) args;
+            if (publicUserData == null) {
+                Toast.makeText(this, "Server Registration Failed", Toast.LENGTH_SHORT).show();
+            } else {
+                storage.getPublicUserData().setName(publicUserData.getName());
+                storage.getPublicUserData().setId(publicUserData.getId());
+                storage.getPublicUserData().setSanderpunten(publicUserData.getSanderpunten());
+                saveUserData();
+                mainMenu.changeName(publicUserData.getName());
+            }
+        }
+    }
+
+    private void onConnectionFailed(Object args) {
+        logIn = false;
+        popup("Could not establish a connection with the server.");
+    }
+
+    private void onDisconnect(Object args) {
+        logIn = false;
+        popup("Lost connection with the server, restart the app. If that doesn't work, the server is probably down.");
+    }
+
+    private void login() {
+        ServiceFunctions.call(rsm, LOGIN, storage.getPublicUserData());
+    }
+
+    private void onLoginResponse(Object args) {
+        popup("Login Successful.");
+    }
+
+    public void changedName(String name) {
+        PublicUserData data = new PublicUserData(storage.getPublicUserData());
+        data.setName(name);
+        ServiceFunctions.call(rsm, NAME_CHANGE, data);
+    }
+
+    private void onNameChangeResponse(Object args) {
+        if (args instanceof PublicUserData) {
+            PublicUserData response = (PublicUserData) args;
+            storage.getPublicUserData().setName(response.getName());
+            saveUserData();
+
+            mainMenu.changeName(storage.getPublicUserData().getName());
+        } else if (args instanceof String) {
+            onStatusError(args);
+            profileMenu.changeName(storage.getPublicUserData().getName());
+        }
+    }
+
+    private void onStatusError(Object args) {
+        if (args instanceof String) {
+            popup((String) args);
+        }
+    }
+
+    public void setupLayout(LayoutBox root) {
+        mainLoaded = true;
+        layoutManager.loadTextures(menuTextureIds);
+
+        connectToServer();
+
+        mainMenu = new MainMenu(this, layoutManager, root);
+        mainMenu.setup(storage.getPublicUserData().getName(),
+                storage.getPublicUserData().getSanderpunten());
+    }
+
+    private void popup(String text) {
+        Log.i("POPUP", "creating popup.");
+        if (popup == null) {
+            popup = new Popup(this, layoutManager, STATE_POPUP);
+            popup.setup();
+        }
+
+        popup.setText(text, "OK");
+        layoutManager.load(STATE_POPUP, true);
+    }
+
+    public void userProfile() {
+        if (menuState == STATE_MAIN) {
+            if (profileMenu == null) {
+                LayoutBox root = layoutManager.newLayout(STATE_PROFILE);
+                if (root != null) {
+                    profileMenu = new ProfileMenu(this, layoutManager, root);
+                    profileMenu.setup(storage.getPublicUserData().getName());
+                }
+            }
+
+            if (profileMenu != null) {
+                layoutManager.switchLayout(STATE_PROFILE);
+                menuState = STATE_PROFILE;
+            }
+        }
+    }
+
+    public void chat() {
+        if (menuState == STATE_MAIN) {
+            if (chatMenu == null) {
+                LayoutBox root = layoutManager.newLayout(STATE_CHAT);
+                if (root != null) {
+                    chatMenu = new ChatMenu(this, layoutManager, root);
+                    chatMenu.setup();
+                }
+            }
+
+            if (chatMenu != null) {
+                layoutManager.switchLayout(STATE_CHAT);
+                menuState = STATE_CHAT;
+            }
+        }
+    }
+
+    private void mainMenu() {
+        if (menuState != STATE_MAIN) {
+            if (mainLoaded) {
+                layoutManager.switchLayout(STATE_MAIN);
+                menuState = STATE_MAIN;
+            }
+        }
     }
 
     private void loadLocalStorage() {
@@ -172,184 +295,6 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         System.out.println("Saved: " + storage.getPublicUserData().getName() + " " + storage.getPublicUserData().getId());
     }
 
-    private void onConnect() {
-        if (storage.getPublicUserData().getId() == -1) {
-            register();
-        } else {
-            login();
-        }
-    }
-
-    private void register() {
-        ServiceFunctions.signal(rsm, WHAT_REGISTER);
-    }
-
-    private void login() {
-        ServiceFunctions.sendObject(rsm, WHAT_LOGIN, storage.getPublicUserData(), OBJECT_PUBLIC_USER_DATA);
-    }
-
-    private void handleRegisterResponse(PublicUserData publicUserData) {
-        if (publicUserData == null) {
-            Toast.makeText(this, "Server Registration Failed", Toast.LENGTH_SHORT).show();
-        } else {
-            storage.getPublicUserData().setName(publicUserData.getName());
-            storage.getPublicUserData().setId(publicUserData.getId());
-            storage.getPublicUserData().setSanderpunten(publicUserData.getSanderpunten());
-            saveUserData();
-            TextBox namebox = (TextBox) layoutManager.getDirectAccess(TEXTBOX_NAME);
-            namebox.setText(publicUserData.getName());
-        }
-    }
-
-    public void setupLayout(LayoutBox root) {
-        font30 = new TextManager(this.getAssets());
-        font30.setFontFile("font/well_bred.otf");
-        font30.setSize(30);
-
-        font35 = new TextManager(this.getAssets());
-        font35.setFontFile("font/well_bred.otf");
-        font35.setSize(35);
-
-        font40 = new TextManager(this.getAssets());
-        font40.setFontFile("font/well_bred.otf");
-        font40.setSize(40);
-
-        font45 = new TextManager(this.getAssets());
-        font45.setFontFile("font/well_bred.otf");
-        font45.setSize(45);
-
-        mainLoaded = true;
-        layoutManager.loadTextures(menuTextureIds);
-
-        connectToServer();
-
-        root.setBackgroundTexture(layoutManager.getTextures()[2]);
-        root.setColor(Colors.WHITE);
-
-        ButtonMenu child = new ButtonMenu(layoutManager, root,0.1f, 0.9f, 0.1f, 0.9f, true, true, 3);
-        child.setChildMargin(20f);
-        child.setChildColor(Colors.WHITE_ALPHA_6);
-        child.setChildTexture(-1);
-
-        ArrayList<LayoutBox> buttons = child.getChilderen();
-        initButtons(buttons);
-    }
-
-    public void loadLayout(float unit) {
-        font30.load(unit);
-        font35.load(unit);
-        font40.load(unit);
-        font45.load(unit);
-    }
-
-    private void initButtons(ArrayList<LayoutBox> buttons) {
-        Button button = (Button) buttons.get(0);
-        button.setHitColor(Colors.RED_ALPHA_6);
-
-        TextBox pre_profile = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.66f, 0.95f, true);
-        pre_profile.setTextManager(font35);
-        pre_profile.setColor(Colors.BLACK_ALPHA_6);
-        pre_profile.setText("PROFILE", Colors.WHITE);
-
-        TextBox pre_name = new TextBox(layoutManager, button, 0.1f, 0.4f, 0.4f, 0.6f, true);
-        pre_name.setTextManager(font35);
-        pre_name.setColor(Colors.GRAY_ALPHA_6);
-        pre_name.setText("Name:", Colors.WHITE);
-
-        TextBox name = new TextBox(layoutManager, button, 0.5f, 0.9f, 0.4f, 0.6f, true);
-        name.setTextManager(font35);
-        name.setColor(Colors.GRAY_ALPHA_6);
-        name.setText(storage.getPublicUserData().getName(), Colors.WHITE);
-        layoutManager.addDirectAccess(name, TEXTBOX_NAME);
-
-        TextBox pre_punten = new TextBox(layoutManager, button, 0.1f, 0.4f, 0.1f, 0.3f, true);
-        pre_punten.setTextManager(font35);
-        pre_punten.setColor(Colors.GRAY_ALPHA_6);
-        pre_punten.setText("S-punten:", Colors.WHITE);
-
-        TextBox punten = new TextBox(layoutManager, button, 0.5f, 0.9f, 0.1f, 0.3f, true);
-        punten.setTextManager(font35);
-        punten.setColor(Colors.GRAY_ALPHA_6);
-        punten.setText(String.valueOf(storage.getPublicUserData().getSanderpunten()), Colors.WHITE);
-
-        button.setTouchCallback(new TouchCallback() {
-            @Override
-            public void onTouch(LayoutBox box) {
-                userProfile();
-            }
-        });
-    }
-
-    private void setupProfileLayout(LayoutBox root) {
-        root.setBackgroundTexture(layoutManager.getTextures()[3]);
-        root.setColor(Colors.WHITE);
-
-        LayoutBox upper = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.60f, 0.95f, true);
-        LayoutBox bottom = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.05f, 0.50f, true);
-        upper.setColor(Colors.WHITE_ALPHA_6);
-        bottom.setColor(Colors.WHITE_ALPHA_6);
-
-        TextBox pre_name = new TextBox(layoutManager, bottom, 0.05f, 0.25f, 0.8f, 0.95f, true);
-        pre_name.setColor(Colors.GRAY_ALPHA_6);
-        pre_name.setTextManager(font35);
-        pre_name.setText("Name: ", Colors.BLACK);
-
-        TextBar name = new TextBar(layoutManager, bottom, 0.30f, 0.95f, 0.8f, 0.95f, true);
-        name.setColor(Colors.GRAY_ALPHA_6);
-        name.setTextManager(font35);
-        name.setText(storage.getPublicUserData().getName(), Colors.BLACK);
-        name.setId(TEXTBAR_NAME);
-        name.setCallback(this);
-    }
-
-    private void popup(String text) {
-        Log.i("POPUP", "creating popup.");
-        if (popup == null) {
-            popup = new Popup(layoutManager, STATE_POPUP);
-        }
-
-        popup.setText(font30, font45, text, "OK");
-        layoutManager.load(STATE_POPUP, true);
-    }
-
-    public void onTextCommitted(TextBar textBar) {
-        switch (textBar.getId()) {
-            case TEXTBAR_NAME:
-                storage.getPublicUserData().setName(textBar.getText());
-                saveUserData();
-
-                TextBox namebox = (TextBox) layoutManager.getDirectAccess(TEXTBOX_NAME);
-                namebox.setText(storage.getPublicUserData().getName());
-                break;
-        }
-    }
-
-    private void userProfile() {
-        if (menuState == STATE_MAIN) {
-            if (!profileLoaded) {
-                LayoutBox root = layoutManager.newLayout(STATE_PROFILE);
-                if (root != null) {
-                    setupProfileLayout(root);
-                    profileLoaded = true;
-                }
-            }
-
-            if (profileLoaded) {
-                layoutManager.switchLayout(STATE_PROFILE);
-                menuState = STATE_PROFILE;
-            }
-        }
-    }
-
-    private void mainMenu() {
-        if (menuState != STATE_MAIN) {
-            if (mainLoaded) {
-                layoutManager.switchLayout(STATE_MAIN);
-                menuState = STATE_MAIN;
-            }
-        }
-    }
-
     @Override
     public void onBackPressed() {
         switch (menuState) {
@@ -357,6 +302,9 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
                 super.onBackPressed();
                 break;
             case STATE_PROFILE:
+                mainMenu();
+                break;
+            case STATE_CHAT:
                 mainMenu();
                 break;
         }

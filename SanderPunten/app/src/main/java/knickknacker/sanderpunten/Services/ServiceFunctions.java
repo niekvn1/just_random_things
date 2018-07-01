@@ -7,7 +7,9 @@ import android.os.RemoteException;
 
 import java.io.Serializable;
 
-import static knickknacker.sanderpunten.Services.ServiceTypes.*;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.FUNC_ARGS;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.FUNC_NAME;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.WHAT_FUNC;
 
 /**
  * Created by Niek on 30-12-2017.
@@ -28,50 +30,12 @@ public abstract class ServiceFunctions {
         }
     }
 
-    /** Send a signal, message without extra data. */
-    public static void signal(Messenger m, int what) {
-        Message msg = Message.obtain();
-        send(m, what, msg);
-    }
-
-    /** Send a string. */
-    public static void sendString(Messenger m, int what, String string) {
+    public static void call(Messenger m, String func, Serializable args) {
         Message msg = Message.obtain();
         Bundle bundle = new Bundle();
-        bundle.putString(STRING_KEY, string);
+        bundle.putString(FUNC_NAME, func);
+        bundle.putSerializable(FUNC_ARGS, args);
         msg.setData(bundle);
-        send(m, what, msg);
-    }
-
-    /** Send an int. */
-    public static void sendInt(Messenger m, int what, int integer) {
-        Message msg = Message.obtain();
-        Bundle bundle = new Bundle();
-        bundle.putInt(INT_KEY, integer);
-        msg.setData(bundle);
-        send(m, what, msg);
-    }
-
-    /** Send a boolean. */
-    public static void sendBoolean(Messenger m, int what, boolean bool) {
-        Message msg = Message.obtain();
-        Bundle bundle = new Bundle();
-        bundle.putBoolean(BOOLEAN_KEY, bool);
-        msg.setData(bundle);
-        send(m, what, msg);
-    }
-
-    /** Send an object. */
-    public static void sendObject(Messenger m, int what, Object o, int c) {
-        if (o instanceof Serializable) {
-            Message msg = Message.obtain();
-            Bundle bundle = new Bundle();
-            bundle.putSerializable(OBJECT_KEY, (Serializable) o);
-            bundle.putInt(OBJECT_TYPE, c);
-            msg.setData(bundle);
-            send(m, what, msg);
-        } else {
-            System.err.println("Object not Serializable");
-        }
+        send(m, WHAT_FUNC, msg);
     }
 }

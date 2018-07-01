@@ -9,11 +9,15 @@ import android.os.Message;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
 
+import java.io.Serializable;
+
 import knickknacker.sanderpunten.TCP.TCPCallback;
 import knickknacker.sanderpunten.TCP.TCPListener;
-import knickknacker.tcp.Signables.PublicUserData;
 
-import static knickknacker.sanderpunten.Services.ServiceTypes.*;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.BROADCAST_KEY;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.FUNC_ARGS;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.FUNC_NAME;
+import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.WHAT_FUNC;
 
 /**
  * Created by Niek on 28-12-2017.
@@ -25,11 +29,11 @@ public class NetworkService extends Service implements TCPCallback {
     private final HandlerIn h_in = new HandlerIn();
     private final Messenger m_in = new Messenger(this.h_in);
 
-    private TCPListener con;
+    private TCPListener client;
 
     @Override
     public void onCreate() {
-        this.con = new TCPListener(this, PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+        this.client = new TCPListener(this, PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
     }
 
     @Override
@@ -48,49 +52,23 @@ public class NetworkService extends Service implements TCPCallback {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case WHAT_REGISTER:
-                    con.register();
-                case WHAT_LOGIN:
-                    Object o = msg.getData().getSerializable(OBJECT_KEY);
-                    if (o instanceof PublicUserData) {
-                        con.login((PublicUserData) o);
-                    }
+                case WHAT_FUNC:
+                    Bundle bundle = msg.getData();
+                    String func = bundle.getString(FUNC_NAME, "");
+                    Object args = bundle.getSerializable(FUNC_ARGS);
+                    client.call(func, args);
             }
         }
     }
 
-    private void sendBundle(Bundle bundle) {
+    public void call(String func, Serializable args) {
+        Bundle bundle = new Bundle();
+        bundle.putString(FUNC_NAME, func);
+        bundle.putSerializable(FUNC_ARGS, args);
+
         Intent intent = new Intent();
         intent.setAction(BROADCAST_KEY);
         intent.putExtras(bundle);
         sendBroadcast(intent);
     }
-
-    public void connectionFailed() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, FAILED_TO_CONNECT);
-        sendBundle(bundle);
-    }
-
-    public void onConnect() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, CONNECTED);
-        sendBundle(bundle);
-    }
-
-    /** Send connection loss signal to activity. */
-    public void onDisconnect() {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, DISCONNECTED);
-        sendBundle(bundle);
-    }
-
-    public void onRegisterResponse(PublicUserData publicUserData) {
-        Bundle bundle = new Bundle();
-        bundle.putByte(BROADCAST_TYPE, REGISTER_RESPONSE);
-        bundle.putSerializable(OBJECT_KEY, publicUserData);
-        sendBundle(bundle);
-    }
-
-
 }

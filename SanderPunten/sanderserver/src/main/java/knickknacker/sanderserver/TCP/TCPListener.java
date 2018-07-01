@@ -42,6 +42,7 @@ public class TCPListener implements TCPServerUser {
     private final boolean SHOW_STORE_MESSAGES = false;
     private final int FIRST_USER_ID = 100;
     private final long MAX_TIME_DIFF = 10000;
+    private final int MAX_NAME_LENGTH = 10;
 
     private TCPCallback callback;
     private TCPServerSide server;
@@ -181,6 +182,25 @@ public class TCPListener implements TCPServerUser {
         }
     }
 
+    private void onNameChange(Object args, String address, int port) {
+        if (args instanceof  PublicUserData) {
+            PublicUserData data = (PublicUserData) args;
+            int id = findUserIdWithName(data.getName());
+            if (data.getName().length() > MAX_NAME_LENGTH) {
+                server.sendTo(address, port, SanderServerProtocol.invalidArgs(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE));
+                callback.stringDisplay("Failed to change the name of " + data.getId());
+            } else if (id == -1) {
+                users[data.getId()].getPublicUserData().setName(data.getName());
+                callWithObject(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE, users[data.getId()].getPublicUserData(), address, port);
+                writeUser(data.getId());
+                callback.stringDisplay(data.getId() + " successfully changed name: " + data.getName());
+            } else {
+                server.sendTo(address, port, SanderServerProtocol.badRequest(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE));
+                callback.stringDisplay("Failed to change the name of " + data.getId());
+            }
+        }
+    }
+
     private void callWithObject(String func, Serializable object, String address, int port) {
         RemoteCall call = new RemoteCall(func, object, null);
         byte[] bytes = Serialize.serialize(call);
@@ -223,6 +243,30 @@ public class TCPListener implements TCPServerUser {
             }
 
             if (users[i].getAddress().equals(address) && users[i].getPort() == port) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int findUserIdWithName(String name) {
+        for (int i = 0; i < FIRST_USER_ID; i++) {
+            if (users[i] == null) {
+                break;
+            }
+
+            if (users[i].getPublicUserData().getName().equals(name)) {
+                return i;
+            }
+        }
+
+        for (int i = FIRST_USER_ID; i < MAX_USERS; i++) {
+            if (users[i] == null) {
+                return -1;
+            }
+
+            if (users[i].getPublicUserData().getName().equals(name)) {
                 return i;
             }
         }

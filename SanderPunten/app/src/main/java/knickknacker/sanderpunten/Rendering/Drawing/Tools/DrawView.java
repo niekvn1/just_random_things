@@ -21,6 +21,8 @@ public class DrawView extends GLSurfaceView {
     private SpannableStringBuilder text;
     private KeyboardCallback callback;
     private int defaultHeight = -1;
+    private int defaultWidth = -1;
+    private int width = -1;
     private int height = -1;
 
     public DrawView(Context context) {
@@ -32,24 +34,24 @@ public class DrawView extends GLSurfaceView {
         this.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                adjustHeight();
+                adjust();
             }
         });
     }
 
-    private void adjustHeight() {
-        if (defaultHeight == -1) {
+    private void adjust() {
+        if (defaultHeight == -1 && defaultWidth == -1) {
+            defaultWidth = this.getWidth();
             defaultHeight = this.getHeight();
         } else {
+            width = this.getWidth();
             height = this.getHeight();
         }
 
 //        int keyboardHeight = defaultHeight - height;
         if (callback != null) {
-            callback.newHeight(height);
+            callback.onToggle(height, defaultHeight);
         }
-
-        Log.i("Layout Change", "new height: " + height);
     }
 
     public void showKeyboard(boolean show) {
