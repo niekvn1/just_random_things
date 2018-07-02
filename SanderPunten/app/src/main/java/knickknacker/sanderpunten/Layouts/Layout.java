@@ -32,21 +32,24 @@ public class Layout {
          * LayoutBox tree, editing their position points. */
         root.init(width, height);
         root.initChilderen();
-        initDrawables(drawables, root);
+
+        initDrawables(drawables, root, !initialized);
         initialized = true;
     }
 
-    private void initDrawables(ArrayList<Drawable> collection, LayoutBox layoutBox) {
+    private void initDrawables(ArrayList<Drawable> collection, LayoutBox layoutBox, boolean fill) {
         /** Traverse the LayoutBox tree and initialize their drawable objects. */
         ArrayList<Drawable> drawables = layoutBox.toDrawable(edges);
-        for (Drawable d : drawables) {
-            if (d != null) {
-                collection.add(d);
+        if (fill) {
+            for (Drawable d : drawables) {
+                if (d != null) {
+                    collection.add(d);
+                }
             }
         }
 
         for (LayoutBox child : layoutBox.getChilderen()) {
-            initDrawables(collection, child);
+            initDrawables(collection, child, fill);
         }
     }
 

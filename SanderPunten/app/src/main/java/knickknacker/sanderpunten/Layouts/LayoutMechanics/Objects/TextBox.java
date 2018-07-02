@@ -52,23 +52,7 @@ public class TextBox extends LayoutBox {
             text = "";
         }
 
-        textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
-        if (textDraw != null) {
-            textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
-            textDraw .setReady(true);
-        }
-
         super.initChilderen();
-    }
-
-    @Override
-    protected void resolutionChain() {
-        super.resolutionMe();
-        if (text != null && textDraw != null) {
-            editText();
-        }
-
-        super.resolutionChilderen();
     }
 
     private void editText() {
@@ -85,11 +69,17 @@ public class TextBox extends LayoutBox {
     @Override
     public ArrayList<Drawable> toDrawable(boolean edges) {
         ArrayList<Drawable> returnDrawables = super.toDrawable(edges);
-        if (first) {
-            returnDrawables.add(textDraw);
-            first = false;
+        if (textDraw == null) {
+            textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
+            if (textDraw != null) {
+                textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
+                textDraw .setReady(true);
+            }
+        } else {
+            editText();
         }
 
+        returnDrawables.add(textDraw);
         return returnDrawables;
     }
 

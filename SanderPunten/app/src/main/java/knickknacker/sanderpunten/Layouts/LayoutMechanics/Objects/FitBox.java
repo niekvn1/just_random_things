@@ -39,13 +39,6 @@ public class FitBox extends LayoutBox {
         }
     }
 
-    @Override
-    protected void resolutionChain() {
-        super.resolutionMe();
-        exactFit();
-        super.resolutionChilderen();
-    }
-
     protected void initChild(int i, float[] corners) {
         LayoutBox layoutBox = childeren.get(i);
         layoutBox.initAll(corners[0], corners[1], corners[2], corners[3]);
@@ -62,13 +55,8 @@ public class FitBox extends LayoutBox {
             corners[2] = top - i * margin - (i + 1) * button_height;
             corners[3] = top - i * margin - i * button_height;
 
-            if (!childrenSet) {
-                Log.i("FITBOX", "init");
-                initChild(i, corners);
-            } else {
-                Log.i("FITBOX", "newres");
-                childeren.get(i).newResolution(corners[0], corners[1], corners[2], corners[3]);
-            }
+            Log.i("FITBOX", "init");
+            initChild(i, corners);
         }
 
         childrenSet = true;

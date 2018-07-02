@@ -108,7 +108,7 @@ public class LayoutManager implements GLRenderCallback {
         } else {
             for (Layout l : layouts) {
                 if (l != null && l.isUsed()) {
-                    l.getRoot().newResolution(this.width, this.height);
+                    l.init(width, height);
                 }
             }
         }
@@ -185,12 +185,8 @@ public class LayoutManager implements GLRenderCallback {
 
     private void change() {
         Layout layout = layouts[using];
-        if (!layout.isInitialized()) {
-            layout.init(width, height);
-        } else {
-            layout.getRoot().newResolution(width, height);
-        }
-
+        layout.init(width, height);
+        Log.i("MANAGER", "CHANGE");
         renderer.setDrawables(layout.getDrawables());
         if (!layout.isDrawInitialized()) {
             renderer.initDrawables(layout.getDrawables());
@@ -202,9 +198,7 @@ public class LayoutManager implements GLRenderCallback {
 
     private void layoutLoaded() {
         for (Layout l : needLoad) {
-            if (!l.isInitialized()) {
-                l.init(width, height);
-            }
+            l.init(width, height);
 
             if (!l.isDrawInitialized()) {
                 for (Drawable d : l.getDrawables()) {
@@ -231,7 +225,7 @@ public class LayoutManager implements GLRenderCallback {
     private void newProjection() {
         for (Layout l : layouts) {
             if (l != null && l.isUsed()) {
-                l.getRoot().newResolution(worldWidth, worldHeight);
+                l.init(worldWidth, worldHeight);
             }
         }
 
