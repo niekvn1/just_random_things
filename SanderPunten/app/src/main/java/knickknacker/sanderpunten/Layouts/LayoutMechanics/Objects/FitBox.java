@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import android.util.Log;
+
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 
 /**
@@ -12,16 +14,21 @@ public class FitBox extends LayoutBox {
     private int childCount;
     private boolean childrenSet = false;
     private boolean fit;
-    float[] childColor;
-    int childTexture = -1;
 
-    public FitBox(LayoutManager manager, LayoutBox parent, float left_, float right_, float bottom_, float top_, boolean relative, boolean fit, int childCount) {
+    public FitBox(LayoutManager manager, LayoutBox parent, boolean fit) {
+        super(manager, parent);
+        this.fit = fit;
+    }
+
+    public FitBox(LayoutManager manager, LayoutBox parent, float left_, float right_, float bottom_, float top_, boolean relative, boolean fit) {
         super(manager, parent, left_, right_, bottom_, top_, relative);
         this.fit = fit;
-        this.childCount = childCount;
-        for (int i = 0; i < this.childCount; i++) {
-            createChild();
-        }
+    }
+
+    @Override
+    public void addChild(LayoutBox box) {
+        super.addChild(box);
+        childCount++;
     }
 
     @Override
@@ -39,18 +46,12 @@ public class FitBox extends LayoutBox {
         super.resolutionChilderen();
     }
 
-    protected void createChild() {
-        new LayoutBox(manager, this);
-    }
-
     protected void initChild(int i, float[] corners) {
         LayoutBox layoutBox = childeren.get(i);
-        layoutBox.setColor(childColor);
-        layoutBox.setBackgroundTexture(childTexture);
         layoutBox.initAll(corners[0], corners[1], corners[2], corners[3]);
     }
 
-    private void exactFit() {
+    public void exactFit() {
         float margin = manager.getUnit() * childMargin;
         float button_height = (height - (childCount - 1) * margin) / childCount;
         for (int i = 0; i < childCount; i++) {
@@ -62,8 +63,10 @@ public class FitBox extends LayoutBox {
             corners[3] = top - i * margin - i * button_height;
 
             if (!childrenSet) {
+                Log.i("FITBOX", "init");
                 initChild(i, corners);
             } else {
+                Log.i("FITBOX", "newres");
                 childeren.get(i).newResolution(corners[0], corners[1], corners[2], corners[3]);
             }
         }
@@ -89,13 +92,5 @@ public class FitBox extends LayoutBox {
 
     public int getChildCount() {
         return childCount;
-    }
-
-    public void setChildColor(float[] childColor) {
-        this.childColor = childColor;
-    }
-
-    public void setChildTexture(int childTexture) {
-        this.childTexture = childTexture;
     }
 }

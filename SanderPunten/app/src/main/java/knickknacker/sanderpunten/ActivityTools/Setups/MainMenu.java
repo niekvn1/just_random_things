@@ -3,12 +3,11 @@ package knickknacker.sanderpunten.ActivityTools.Setups;
 import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
 import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.Button;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.ButtonMenu;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.FitBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchCallback;
@@ -34,14 +33,12 @@ public class MainMenu extends LayoutSetup {
         root.setColor(Colors.WHITE);
 
         /** Button Menu: */
-        ButtonMenu child = new ButtonMenu(layoutManager, root,0.1f, 0.9f, 0.1f, 0.9f, true, true, 3);
+        FitBox child = new FitBox(layoutManager, root,0.1f, 0.9f, 0.1f, 0.9f, true, true);
         child.setChildMargin(20f);
-        child.setChildColor(Colors.WHITE_ALPHA_6);
-        child.setChildTexture(-1);
-        ArrayList<LayoutBox> buttons = child.getChilderen();
 
         /** Buttons 1: */
-        Button button = (Button) buttons.get(0);
+        Button button = new Button(layoutManager, child);
+        button.setColor(Colors.WHITE_ALPHA_6);
         button.setHitColor(Colors.RED_ALPHA_6);
 
         TextBox pre_profile = new TextBox(layoutManager, button, 0.1f, 0.9f, 0.66f, 0.95f, true);
@@ -78,7 +75,8 @@ public class MainMenu extends LayoutSetup {
         });
 
         /** Button 2 */
-        Button button2 = (Button) buttons.get(1);
+        Button button2 = new Button(layoutManager, child);
+        button2.setColor(Colors.WHITE_ALPHA_6);
         button2.setHitColor(Colors.BLUE_ALPHA_6);
 
         TextBox pre_chat = new TextBox(layoutManager, button2, 0.1f, 0.9f, 0.66f, 0.95f, true);

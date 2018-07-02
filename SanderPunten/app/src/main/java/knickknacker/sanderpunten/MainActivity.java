@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import knickknacker.sanderpunten.ActivityTools.Setups.ChatMenu;
+import knickknacker.sanderpunten.ActivityTools.Setups.ChatMenuCallback;
 import knickknacker.sanderpunten.ActivityTools.Setups.MainMenu;
 import knickknacker.sanderpunten.ActivityTools.Setups.Popup;
 import knickknacker.sanderpunten.ActivityTools.Setups.MainMenuCallback;
@@ -31,11 +32,12 @@ import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
 import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.tcp.Signables.SignableString;
 
 import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.*;
 
 public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, MainMenuCallback,
-        ProfileMenuCallback {
+        ProfileMenuCallback, ChatMenuCallback {
     private final byte STATE_MAIN = 0;
     private final byte STATE_PROFILE = 1;
     private final byte STATE_POPUP = 2;
@@ -50,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     private int[] menuTextureIds = {R.drawable.struissander, R.drawable.sanderstrand,
                                     R.drawable.dumb_sheep, R.drawable.multiple_sheep,
                                     R.drawable.sheep_low, R.drawable.freek,
-                                    R.drawable.error_sheep};
+                                    R.drawable.error_sheep, R.drawable.send};
     private byte menuState = STATE_MAIN;
 
     private boolean mainLoaded = false;
@@ -174,9 +176,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     public void changedName(String name) {
-        PublicUserData data = new PublicUserData(storage.getPublicUserData());
-        data.setName(name);
-        ServiceFunctions.call(rsm, NAME_CHANGE, data);
+        ServiceFunctions.call(rsm, NAME_CHANGE, new SignableString(storage.getPublicUserData().getId(), name));
     }
 
     private void onNameChangeResponse(Object args) {
@@ -251,6 +251,17 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
                 layoutManager.switchLayout(STATE_CHAT);
                 menuState = STATE_CHAT;
             }
+        }
+    }
+
+    public void onChatSend(String msg) {
+        ServiceFunctions.call(rsm, ON_CHAT_SEND, new SignableString(storage.getPublicUserData().getId(), msg));
+    }
+
+    public void onChatReceive(Object args) {
+        if (args instanceof String) {
+            String msg = (String) args;
+            chatMenu.onChatReceive(msg);
         }
     }
 

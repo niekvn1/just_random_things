@@ -7,28 +7,19 @@ import java.io.Serializable;
  */
 
 public class PublicUserData extends Signable implements Serializable {
-    private int id;
     private String name;
     private long sanderpunten;
 
     public PublicUserData(int id) {
-        this.id = id;
+        super(id);
         sanderpunten = 0;
         name = "";
     }
 
     public PublicUserData(PublicUserData data) {
-        this.id = data.getId();
+        super(data.getId());
         this.name = data.getName();
         this.sanderpunten = data.getSanderpunten();
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

@@ -21,6 +21,9 @@ public class TextBox extends LayoutBox {
     float[] textColor = null;
     private boolean first = true;
 
+    public TextBox(LayoutManager manager, LayoutBox parent) {
+        super(manager, parent);
+    }
 
     public TextBox(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         super(manager, parent, left, right, bottom, top, relative);
@@ -45,12 +48,14 @@ public class TextBox extends LayoutBox {
     @Override
     public void initAll() {
         super.init();
-        if (text != null) {
-            textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
-            if (textDraw != null) {
-                textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
-                textDraw .setReady(true);
-            }
+        if (text == null) {
+            text = "";
+        }
+
+        textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
+        if (textDraw != null) {
+            textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
+            textDraw .setReady(true);
         }
 
         super.initChilderen();

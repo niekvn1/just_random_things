@@ -15,6 +15,10 @@ public class TextBar extends TextBox implements KeyboardCallback {
     private TextBarCallback callback;
     private boolean showing = false;
 
+    public TextBar(LayoutManager manager, LayoutBox parent) {
+        super(manager, parent);
+    }
+
     public TextBar(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         super(manager, parent, left, right, bottom, top, relative);
     }
@@ -30,7 +34,6 @@ public class TextBar extends TextBox implements KeyboardCallback {
 
     @Override
     protected void onTouchUp(TouchData data) {
-        Log.i("TextBar", "OnTouch");
         showKeyboard();
         super.onTouchUp(data);
     }
@@ -45,7 +48,7 @@ public class TextBar extends TextBox implements KeyboardCallback {
     public void keyboardInput(int keyCode, KeyEvent event) {
         int uniChar = event.getUnicodeChar();
         String character = new String(new int[] {uniChar}, 0, 1);
-        System.out.println("KEY: " + character + " " + keyCode);
+        Log.i("KEY", character + " " + keyCode);
         if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
 //            Digits:
             addCharacter(event);
@@ -83,7 +86,11 @@ public class TextBar extends TextBox implements KeyboardCallback {
     private void addCharacter(KeyEvent event) {
         int uniChar = event.getUnicodeChar();
         String character = new String(new int[] {uniChar}, 0, 1);
-        setText(text + character);
+        if (text == null) {
+            setText(character);
+        } else {
+            setText(text + character);
+        }
     }
 
     private void delete(int i) {
@@ -94,7 +101,10 @@ public class TextBar extends TextBox implements KeyboardCallback {
 
     private void done() {
         cancel();
-        callback.onTextCommitted(this);
+        if (callback != null) {
+            callback.onTextCommitted(this);
+        }
+
         setText(text);
     }
 

@@ -28,6 +28,8 @@ import knickknacker.tcp.Serialize;
 import knickknacker.tcp.Networking.TCPServerSide;
 import knickknacker.tcp.Networking.TCPServerUser;
 import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.tcp.Signables.Signable;
+import knickknacker.tcp.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
 /**
@@ -68,12 +70,13 @@ public class TCPListener implements TCPServerUser {
             RemoteCall call = (RemoteCall) o;
             String func = call.getFunc();
             Object args = call.getData();
+            callback.stringDisplay("Call to " + func);
             if (!func.equals(SanderServerProtocol.FUNC_REGISTER)) {
-                if (args instanceof PublicUserData) {
+                if (args instanceof Signable) {
 
 //                  Check if user exists:
-                    PublicUserData userData = (PublicUserData) args;
-                    User user = users[userData.getId()];
+                    Signable signData = (Signable) args;
+                    User user = users[signData.getId()];
                     if (user == null) {
                         Log.i("VERIFY CALL", "User Not Found");
                         server.sendTo(address, port, SanderServerProtocol.notFound(SanderServerProtocol.FUNC_SERVER_EXCEPTION));
@@ -81,7 +84,7 @@ public class TCPListener implements TCPServerUser {
                     }
 
 //                  Check if for recent date:
-                    Date date = TimeConverter.stringToDate(userData.getTimestamp());
+                    Date date = TimeConverter.stringToDate(signData.getTimestamp());
                     Date now = TimeConverter.getCurrentDate();
                     if (Math.abs(date.getTime() - now.getTime()) > MAX_TIME_DIFF) {
                         Log.i("VERIFY CALL", "Invalid Time");
@@ -91,7 +94,7 @@ public class TCPListener implements TCPServerUser {
 
 //                  Checking sign:
                     try {
-                        if (!RSA.verifyObject(call.getSignature(), userData, user.getPublicKey())) {
+                        if (!RSA.verifyObject(call.getSignature(), signData, user.getPublicKey())) {
                             Log.i("VERIFY CALL", "Signature Verification Failed");
                             server.sendTo(address, port, SanderServerProtocol.verificationFailure(SanderServerProtocol.FUNC_SERVER_EXCEPTION));
                             return;
@@ -183,28 +186,43 @@ public class TCPListener implements TCPServerUser {
     }
 
     private void onNameChange(Object args, String address, int port) {
-        if (args instanceof  PublicUserData) {
-            PublicUserData data = (PublicUserData) args;
-            int id = findUserIdWithName(data.getName());
-            if (data.getName().length() > MAX_NAME_LENGTH) {
+        if (args instanceof SignableString) {
+            SignableString name = (SignableString) args;
+            int id = findUserIdWithName(name.getString());
+            if (name.getString().length() > MAX_NAME_LENGTH) {
                 server.sendTo(address, port, SanderServerProtocol.invalidArgs(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE));
-                callback.stringDisplay("Failed to change the name of " + data.getId());
+                callback.stringDisplay("Failed to change the name of " + name.getId());
             } else if (id == -1) {
-                users[data.getId()].getPublicUserData().setName(data.getName());
-                callWithObject(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE, users[data.getId()].getPublicUserData(), address, port);
-                writeUser(data.getId());
-                callback.stringDisplay(data.getId() + " successfully changed name: " + data.getName());
+                users[name.getId()].getPublicUserData().setName(name.getString());
+                callWithObject(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE, users[name.getId()].getPublicUserData(), address, port);
+                writeUser(name.getId());
+                callback.stringDisplay(name.getId() + " successfully changed name: " + name.getString());
             } else {
                 server.sendTo(address, port, SanderServerProtocol.badRequest(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE));
-                callback.stringDisplay("Failed to change the name of " + data.getId());
+                callback.stringDisplay("Failed to change the name of " + name.getId());
             }
+        }
+    }
+
+    private void onChatSend(Object args, String address, int port) {
+        if (args instanceof SignableString) {
+            SignableString msg = (SignableString) args;
+            User user = users[msg.getId()];
+            PublicUserData data = user.getPublicUserData();
+            String response = data.getName() + ": " + msg.getString();
+            broadcastWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, response);
+            callback.stringDisplay(response);
         }
     }
 
     private void callWithObject(String func, Serializable object, String address, int port) {
         RemoteCall call = new RemoteCall(func, object, null);
-        byte[] bytes = Serialize.serialize(call);
-        server.sendTo(address, port, bytes);
+        server.sendTo(address, port, call.encode());
+    }
+
+    private void broadcastWithObject(String func, Serializable object) {
+        RemoteCall call = new RemoteCall(func, object, null);
+        server.broadcast(call.encode());
     }
 
     public void onConnect(String address, int port) {

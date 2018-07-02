@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import android.util.Log;
+
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
 
@@ -26,7 +28,11 @@ public class Button extends LayoutBox {
     @Override
     public void onTouchDown(TouchData data) {
         down = true;
-        drawable.editColor(hitColor);
+        Log.i("BUTTON", "onTouch");
+        if (drawable != null) {
+            drawable.editColor(hitColor);
+        }
+
         super.onTouchDown(data);
     }
 

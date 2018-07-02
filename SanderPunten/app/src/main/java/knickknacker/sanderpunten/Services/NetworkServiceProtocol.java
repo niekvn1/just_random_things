@@ -16,6 +16,8 @@ public abstract class NetworkServiceProtocol {
             public static final String NAME_CHANGE = "changedName";
             public static final String ON_NAME_CHANGE_RESPONSE = "onNameChangeResponse";
             public static final String ON_STATUS_ERROR = "onStatusError";
+            public static final String ON_CHAT_SEND = "onChatSend";
+            public static final String ON_CHAT_RECEIVE = "onChatReceive";
 
         public final static String FUNC_ARGS = "service_func_args";
 }

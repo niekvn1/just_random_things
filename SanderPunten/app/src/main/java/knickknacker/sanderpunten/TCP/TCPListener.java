@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 
 import knickknacker.RSA.RSA;
+import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.NetworkServiceProtocol;
 import knickknacker.tcp.Protocol.SanderServerProtocol;
 import knickknacker.tcp.RemoteCall;
@@ -22,6 +23,7 @@ import knickknacker.tcp.Signables.Signable;
 import knickknacker.tcp.Networking.TCPClientSide;
 import knickknacker.tcp.Networking.TCPClientUser;
 import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.tcp.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
 /**
@@ -118,8 +120,8 @@ public class TCPListener implements TCPClientUser {
     }
 
     public void changedName(Object args) {
-        if (args instanceof PublicUserData) {
-            PublicUserData data = (PublicUserData) args;
+        if (args instanceof SignableString) {
+            SignableString data = (SignableString) args;
             RemoteCall call = callWithSign(SanderServerProtocol.FUNC_NAME_CHANGE, data);
             if (call != null) {
                 client.sendData(call.encode());
@@ -135,11 +137,28 @@ public class TCPListener implements TCPClientUser {
         }
     }
 
+    public void onChatSend(Object args) {
+        if (args instanceof SignableString) {
+            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_CHAT_SEND, (SignableString) args);
+            if (call != null) {
+                client.sendData(call.encode());
+            }
+        }
+    }
+
+    public void onChatReceive(Object args) {
+        if (args instanceof String) {
+            callback.call(NetworkServiceProtocol.ON_CHAT_RECEIVE, (String) args);
+        }
+    }
+
     public void onServerException(Object args) {
         if (args instanceof String) {
             Log.e("ServerException", (String) args);
+            callback.call(NetworkServiceProtocol.ON_STATUS_ERROR, (String) args);
         } else {
             Log.e("ServerException", "no specifications.");
+            callback.call(NetworkServiceProtocol.ON_STATUS_ERROR, "no specifications.");
         }
     }
 
