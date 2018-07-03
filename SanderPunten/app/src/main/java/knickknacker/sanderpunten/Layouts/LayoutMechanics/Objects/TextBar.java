@@ -19,6 +19,10 @@ public class TextBar extends TextBox implements KeyboardCallback {
         super(manager, parent);
     }
 
+    public TextBar(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
+        this(manager, parent, 0f, width , 0f, height, relative);
+    }
+
     public TextBar(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         super(manager, parent, left, right, bottom, top, relative);
     }
@@ -52,8 +56,11 @@ public class TextBar extends TextBox implements KeyboardCallback {
         if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
 //            Digits:
             addCharacter(event);
-        } else if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z) {
+        } else if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_PERIOD) {
 //            Letters:
+            addCharacter(event);
+        } else if (keyCode >= KeyEvent.KEYCODE_MINUS && keyCode <= KeyEvent.KEYCODE_SLASH) {
+//            Math operators:
             addCharacter(event);
         } else if (keyCode == KeyEvent.KEYCODE_SPACE) {
 //            Space:

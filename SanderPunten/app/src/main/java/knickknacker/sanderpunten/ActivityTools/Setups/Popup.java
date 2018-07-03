@@ -22,6 +22,8 @@ public class Popup extends LayoutSetup {
     }
 
     public void setup() {
+        LayoutBox root = layout.getRoot();
+
         fonts[0] = new TextManager(context.getAssets());
         fonts[0].setFontFile("font/well_bred.otf");
         fonts[0].setSize(30);

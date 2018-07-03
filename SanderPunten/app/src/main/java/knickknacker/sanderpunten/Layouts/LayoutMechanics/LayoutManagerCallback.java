@@ -1,5 +1,6 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics;
 
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 
 /**
@@ -11,5 +12,5 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 public interface LayoutManagerCallback {
 
     /** Setup for the layout. */
-    void setupLayout(LayoutBox root);
+    void setupLayout(Layout layout);
 }

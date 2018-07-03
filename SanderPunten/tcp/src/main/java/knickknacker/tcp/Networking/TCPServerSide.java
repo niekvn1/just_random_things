@@ -289,7 +289,7 @@ public class TCPServerSide {
                 holder.close();
             }
 
-            TCPServerSide.this.sockets.empty();
+            TCPServerSide.this.sockets.clear();
         }
     }
 

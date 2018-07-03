@@ -1,7 +1,5 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
-import android.util.Log;
-
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 
 /**
@@ -18,6 +16,10 @@ public class FitBox extends LayoutBox {
     public FitBox(LayoutManager manager, LayoutBox parent, boolean fit) {
         super(manager, parent);
         this.fit = fit;
+    }
+
+    public FitBox(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative, boolean fit) {
+        this(manager, parent, 0f, width , 0f, height, relative, fit);
     }
 
     public FitBox(LayoutManager manager, LayoutBox parent, float left_, float right_, float bottom_, float top_, boolean relative, boolean fit) {
@@ -40,7 +42,7 @@ public class FitBox extends LayoutBox {
     }
 
     protected void initChild(int i, float[] corners) {
-        LayoutBox layoutBox = childeren.get(i);
+        LayoutBox layoutBox = children.get(i);
         layoutBox.initAll(corners[0], corners[1], corners[2], corners[3]);
     }
 
@@ -55,7 +57,6 @@ public class FitBox extends LayoutBox {
             corners[2] = top - i * margin - (i + 1) * button_height;
             corners[3] = top - i * margin - i * button_height;
 
-            Log.i("FITBOX", "init");
             initChild(i, corners);
         }
 

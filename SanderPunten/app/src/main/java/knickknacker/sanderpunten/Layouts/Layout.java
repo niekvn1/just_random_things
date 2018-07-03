@@ -28,28 +28,35 @@ public class Layout {
     }
 
     public void init(float width, float height) {
+        init(width, height, initialized);
+    }
+
+    public ArrayList<Drawable> init(float width, float height, boolean all) {
         /** Initialize the layout with a width and a height, this will start a traversal of the
          * LayoutBox tree, editing their position points. */
         root.init(width, height);
         root.initChilderen();
+        ArrayList<Drawable> collection = new ArrayList<>();
+        initDrawables(collection, root, all);
+        if (!initialized) {
+            initialized = true;
+            drawables = collection;
+        }
 
-        initDrawables(drawables, root, !initialized);
-        initialized = true;
+        return collection;
     }
 
-    private void initDrawables(ArrayList<Drawable> collection, LayoutBox layoutBox, boolean fill) {
+    private void initDrawables(ArrayList<Drawable> collection, LayoutBox layoutBox, boolean all) {
         /** Traverse the LayoutBox tree and initialize their drawable objects. */
         ArrayList<Drawable> drawables = layoutBox.toDrawable(edges);
-        if (fill) {
-            for (Drawable d : drawables) {
-                if (d != null) {
-                    collection.add(d);
-                }
+        for (Drawable d : drawables) {
+            if (d != null && (all || !this.drawables.contains(d))) {
+                collection.add(d);
             }
         }
 
-        for (LayoutBox child : layoutBox.getChilderen()) {
-            initDrawables(collection, child, fill);
+        for (LayoutBox child : layoutBox.getChildren()) {
+            initDrawables(collection, child, all);
         }
     }
 

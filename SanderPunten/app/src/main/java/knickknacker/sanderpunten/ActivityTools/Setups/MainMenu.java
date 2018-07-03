@@ -5,6 +5,7 @@ import android.content.Context;
 import java.util.ArrayList;
 
 import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.Button;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.FitBox;
@@ -18,12 +19,14 @@ public class MainMenu extends LayoutSetup {
     private final String TEXTBOX_NAME = "textview_name";
     private MainMenuCallback callback;
 
-    public MainMenu(MainMenuCallback callback, LayoutManager layoutManager, LayoutBox root) {
-        super((Context) callback, layoutManager, root, 1);
+    public MainMenu(MainMenuCallback callback, LayoutManager layoutManager, Layout layout) {
+        super((Context) callback, layoutManager, layout, 1);
         this.callback = callback;
     }
 
     public void setup(String username, long sanderpunten) {
+        LayoutBox root = layout.getRoot();
+
         fonts[0] = new TextManager(context.getAssets());
         fonts[0].setFontFile("font/well_bred.otf");
         fonts[0].setSize(35);

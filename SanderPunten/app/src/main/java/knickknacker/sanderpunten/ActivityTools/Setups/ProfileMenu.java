@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBar;
@@ -16,12 +17,14 @@ public class ProfileMenu extends LayoutSetup implements TextBarCallback {
     private final String TEXTBAR_NAME = "textbar_name";
     private ProfileMenuCallback callback;
 
-    public ProfileMenu(ProfileMenuCallback callback, LayoutManager layoutManager, LayoutBox root) {
-        super((Context) callback, layoutManager, root, 1);
+    public ProfileMenu(ProfileMenuCallback callback, LayoutManager layoutManager, Layout layout) {
+        super((Context) callback, layoutManager, layout, 1);
         this.callback = callback;
     }
 
     public void setup(String username) {
+        LayoutBox root = layout.getRoot();
+
         fonts[0] = new TextManager(context.getAssets());
         fonts[0].setFontFile("font/well_bred.otf");
         fonts[0].setSize(35);

@@ -25,6 +25,10 @@ public class TextBox extends LayoutBox {
         super(manager, parent);
     }
 
+    public TextBox(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
+        this(manager, parent, 0f, width , 0f, height, relative);
+    }
+
     public TextBox(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         super(manager, parent, left, right, bottom, top, relative);
     }

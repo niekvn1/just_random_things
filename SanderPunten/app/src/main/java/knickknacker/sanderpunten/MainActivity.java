@@ -25,6 +25,7 @@ import knickknacker.sanderpunten.ActivityTools.Setups.Popup;
 import knickknacker.sanderpunten.ActivityTools.Setups.MainMenuCallback;
 import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenu;
 import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenuCallback;
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManagerCallback;
@@ -198,13 +199,13 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         }
     }
 
-    public void setupLayout(LayoutBox root) {
+    public void setupLayout(Layout layout) {
         mainLoaded = true;
         layoutManager.loadTextures(menuTextureIds);
 
         connectToServer();
 
-        mainMenu = new MainMenu(this, layoutManager, root);
+        mainMenu = new MainMenu(this, layoutManager, layout);
         mainMenu.setup(storage.getPublicUserData().getName(),
                 storage.getPublicUserData().getSanderpunten());
     }
@@ -223,9 +224,9 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     public void userProfile() {
         if (menuState == STATE_MAIN) {
             if (profileMenu == null) {
-                LayoutBox root = layoutManager.newLayout(STATE_PROFILE);
-                if (root != null) {
-                    profileMenu = new ProfileMenu(this, layoutManager, root);
+                Layout layout = layoutManager.newLayout(STATE_PROFILE);
+                if (layout != null) {
+                    profileMenu = new ProfileMenu(this, layoutManager, layout);
                     profileMenu.setup(storage.getPublicUserData().getName());
                 }
             }
@@ -240,9 +241,9 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     public void chat() {
         if (menuState == STATE_MAIN) {
             if (chatMenu == null) {
-                LayoutBox root = layoutManager.newLayout(STATE_CHAT);
-                if (root != null) {
-                    chatMenu = new ChatMenu(this, layoutManager, root);
+                Layout layout = layoutManager.newLayout(STATE_CHAT);
+                if (layout != null) {
+                    chatMenu = new ChatMenu(this, layoutManager, layout);
                     chatMenu.setup();
                 }
             }

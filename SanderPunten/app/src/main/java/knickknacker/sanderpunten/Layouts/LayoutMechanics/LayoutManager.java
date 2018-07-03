@@ -19,6 +19,7 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
 import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
 import knickknacker.sanderpunten.Utilities.Flag;
+import knickknacker.tcp.Networking.ConcurrentList;
 
 /**
  * Created by Niek on 26-5-2018.
@@ -32,12 +33,14 @@ public class LayoutManager implements GLRenderCallback {
     public final static int INTERRUPT_LAYOUT_UNLOAD = 3;
     public final static int INTERRUPT_NEW_PROJECTION = 4;
     public final static int INTERRUPT_FONT_LOADER = 5;
+    public final static int INTERRUPT_LAYOUT_RELOAD = 6;
 
     private Layout[] layouts;
-    private ArrayList<Layout> needLoad;
-    private ArrayList<Layout> needUnload;
+    private ConcurrentList<Layout> needLoad;
+    private ConcurrentList<Layout> needUnload;
+    private ConcurrentList<Layout> needReload;
+    private ConcurrentList<TextManager> fontLoad;
     private ArrayList<LayoutBox> directAccess;
-    private ArrayList<TextManager> fontLoad;
     private GLRenderer renderer;
     private DrawView view;
     private Activity act;
@@ -62,9 +65,10 @@ public class LayoutManager implements GLRenderCallback {
         this.layoutCount = layoutCount < 1 ? 1 : layoutCount;
         layouts = new Layout[this.layoutCount];
         directAccess = new ArrayList<>();
-        needLoad = new ArrayList<>();
-        needUnload = new ArrayList<>();
-        fontLoad = new ArrayList<>();
+        needLoad = new ConcurrentList<>();
+        needUnload = new ConcurrentList<>();
+        fontLoad = new ConcurrentList<>();
+        needReload = new ConcurrentList<>();
     }
 
     public void onCreate() {
@@ -86,7 +90,7 @@ public class LayoutManager implements GLRenderCallback {
         newLayout(0);
         touchListener = new TouchListener(this);
         view.setOnTouchListener(touchListener);
-        ((LayoutManagerCallback) act).setupLayout(layouts[using].getRoot());
+        ((LayoutManagerCallback) act).setupLayout(layouts[using]);
     }
 
     public void surfaceChangedCallback(int width, int height) {
@@ -171,10 +175,14 @@ public class LayoutManager implements GLRenderCallback {
         if (interrupt.hasSet(INTERRUPT_NEW_PROJECTION)) {
             newProjection();
         }
+
+        if (interrupt.hasSet(INTERRUPT_LAYOUT_RELOAD)) {
+            layoutReload();
+        }
     }
 
     private void loadFonts() {
-        for (TextManager font : fontLoad) {
+        for (TextManager font : fontLoad.getCopy()) {
             font.load(unit);
             Log.i("FONT LOADER", "" + font.getSize());
         }
@@ -197,7 +205,7 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     private void layoutLoaded() {
-        for (Layout l : needLoad) {
+        for (Layout l : needLoad.getCopy()) {
             l.init(width, height);
 
             if (!l.isDrawInitialized()) {
@@ -213,13 +221,26 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     private void layoutUnload() {
-        for (Layout l : needUnload) {
+        for (Layout l : needUnload.getCopy()) {
             for (Drawable d : l.getDrawables()) {
                 renderer.removeDrawable(d);
             }
         }
 
         interrupt.unset(INTERRUPT_LAYOUT_UNLOAD);
+    }
+
+    private void layoutReload() {
+        for (Layout l : needReload.getCopy()) {
+            ArrayList<Drawable> newDrawables = l.init(width, height, false);
+            for (Drawable d : newDrawables) {
+                renderer.newDrawable(d);
+                renderer.initDrawable(d);
+            }
+        }
+
+        needReload.clear();
+        interrupt.unset(INTERRUPT_LAYOUT_RELOAD);
     }
 
     private void newProjection() {
@@ -240,12 +261,12 @@ public class LayoutManager implements GLRenderCallback {
         return info.reqGlEsVersion >= 0x20000;
     }
 
-    public LayoutBox newLayout(int index) {
+    public Layout newLayout(int index) {
         /** Return a new Layout instance, that will also be save on the given index in this
          * manager. */
         if (index < layoutCount) {
             layouts[index] = new Layout(this, drawEdges);
-            return layouts[index].getRoot();
+            return layouts[index];
         }
 
         return null;
@@ -276,8 +297,8 @@ public class LayoutManager implements GLRenderCallback {
 
         if (!layout.isUsed()) {
             layout.setUsed(true);
-            interrupt.set(INTERRUPT_LAYOUT_LOADED);
             needLoad.add(layout);
+            interrupt.set(INTERRUPT_LAYOUT_LOADED);
         }
     }
 
@@ -287,6 +308,11 @@ public class LayoutManager implements GLRenderCallback {
         layouts[index].setUsed(false);
         needUnload.add(layouts[index]);
         interrupt.set(INTERRUPT_LAYOUT_UNLOAD);
+    }
+
+    public void reload(Layout layout) {
+        needReload.add(layout);
+        interrupt.set(INTERRUPT_LAYOUT_RELOAD);
     }
 
     public void loadFont(TextManager font) {

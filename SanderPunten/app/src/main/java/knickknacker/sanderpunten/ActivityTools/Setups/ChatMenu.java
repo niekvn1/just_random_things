@@ -4,10 +4,12 @@ import android.content.Context;
 import android.util.Log;
 
 import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.Button;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.FitBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.List;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBar;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBarCallback;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBox;
@@ -18,14 +20,16 @@ import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
 public class ChatMenu extends LayoutSetup implements TextBarCallback {
     private ChatMenuCallback callback;
     private TextBar insert;
-    private FitBox chatLog;
+    private List chatLog;
 
-    public ChatMenu(ChatMenuCallback callback, LayoutManager layoutManager, LayoutBox root) {
-        super((Context) callback, layoutManager, root, 1);
+    public ChatMenu(ChatMenuCallback callback, LayoutManager layoutManager, Layout layout) {
+        super((Context) callback, layoutManager, layout, 1);
         this.callback = callback;
     }
 
     public void setup() {
+        LayoutBox root = layout.getRoot();
+
         fonts[0] = new TextManager(context.getAssets());
         fonts[0].setFontFile("font/well_bred.otf");
         fonts[0].setSize(25);
@@ -34,8 +38,10 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
         root.setBackgroundTexture(layoutManager.getTextures()[5]);
         root.setColor(Colors.WHITE);
 
-        chatLog = new FitBox(layoutManager, root, 0.05f, 0.95f, 0.20f, 0.95f, true, true);
+        chatLog = new List(layoutManager, root, 0.05f, 0.95f, 0.20f, 0.95f, true);
         chatLog.setColor(Colors.WHITE_ALPHA_6);
+        chatLog.setMargin(20);
+        chatLog.setChildMargin(10);
 
         LayoutBox chatBar = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.05f, 0.15f, true);
         chatBar.setColor(Colors.WHITE_ALPHA_6);
@@ -64,9 +70,11 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
     }
 
     public void onChatReceive(String msg) {
-        TextBox entry = new TextBox(layoutManager, chatLog);
+        TextBox entry = new TextBox(layoutManager, chatLog, chatLog.getWidth() * 0.9f, 100, false);
+        entry.setTextManager(fonts[0]);
         entry.setColor(Colors.GRAY_ALPHA_6);
         entry.setText(msg);
         Log.i("CHATMENU", "size: " + chatLog.getChildCount());
+        layoutManager.reload(layout);
     }
 }

@@ -38,7 +38,7 @@ public class ConcurrentList<T> {
     }
 
     /** Empty the list. */
-    public void empty() {
+    public void clear() {
         writeLock.lock();
         try {
             list.clear();
@@ -84,5 +84,17 @@ public class ConcurrentList<T> {
         }
 
         return  copy;
+    }
+
+    public int size() {
+        int size;
+        readLock.lock();
+        try {
+            size = list.size();
+        } finally {
+            readLock.unlock();
+        }
+
+        return size;
     }
 }

@@ -9,6 +9,7 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchCallback;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
+import knickknacker.tcp.Networking.ConcurrentList;
 
 
 /**
@@ -20,7 +21,7 @@ public class LayoutBox {
     protected float left, right, bottom, top;
     protected float rLeft, rRight, rBottom, rTop;
     protected float width, height;
-    protected ArrayList<LayoutBox> childeren = new ArrayList<>();
+    protected ConcurrentList<LayoutBox> children = new ConcurrentList<>();
     protected float[] transformMatrix = null;
     protected int backgroundTexture = -1;
     protected float[] color = null;
@@ -60,6 +61,8 @@ public class LayoutBox {
             this.rTop = top;
         }
 
+        this.width = this.right - this.left;
+        this.height = this.top - this.bottom;
     }
 
     public void initAll() {
@@ -90,7 +93,7 @@ public class LayoutBox {
     }
 
     public void initChilderen() {
-        for (LayoutBox child : childeren) {
+        for (LayoutBox child : children.getCopy()) {
             child.initAll();
         }
     }
@@ -134,16 +137,16 @@ public class LayoutBox {
         if (data.getType() == TouchListener.TOUCH_DOWN && data.getPointerCount() == 1) {
             if (touchHit(data.getX(0), data.getY(0))) {
                 onTouchDown(data);
-                onTouchEventChilderen(data);
+                onTouchEventChildren(data);
             }
         } else if (data.getType() == TouchListener.TOUCH_UP && data.getPointerCount() == 0) {
             if (touchHit(data.getX(), data.getY())) {
                 onTouchUp(data);
-                onTouchEventChilderen(data);
+                onTouchEventChildren(data);
             }
         } else if (data.getType() == TouchListener.TOUCH_CANCEL) {
             onTouchCancel(data);
-            onTouchEventChilderen(data);
+            onTouchEventChildren(data);
         }
     }
 
@@ -161,8 +164,8 @@ public class LayoutBox {
         // Do Things ...
     }
 
-    protected void onTouchEventChilderen(TouchData data) {
-        for (LayoutBox child : childeren) {
+    protected void onTouchEventChildren(TouchData data) {
+        for (LayoutBox child : children.getCopy()) {
             child.onTouchEvent(data);
         }
     }
@@ -198,7 +201,7 @@ public class LayoutBox {
     }
 
     public void addChild(LayoutBox child) {
-        childeren.add(child);
+        children.add(child);
     }
 
     public float[] getTransformMatrix() {
@@ -225,8 +228,8 @@ public class LayoutBox {
         return new float[] {left, right, bottom, top};
     }
 
-    public ArrayList<LayoutBox> getChilderen() {
-        return childeren;
+    public ArrayList<LayoutBox> getChildren() {
+        return children.getCopy();
     }
 
     public float[] getColor() {
