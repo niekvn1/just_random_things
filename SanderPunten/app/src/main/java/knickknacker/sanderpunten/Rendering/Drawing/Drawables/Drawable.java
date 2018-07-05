@@ -29,6 +29,13 @@ public class Drawable {
     protected boolean updatePoints = false;
     protected boolean updateColor = false;
     protected boolean updateTexels = false;
+    protected boolean updateScissor = false;
+    protected int[] scissorEdits;
+    protected int scissorX = 0;
+    protected int scissorY = 0;
+    protected int scissorWidth = 0;
+    protected int scissorHeight = 0;
+    protected boolean useScissor = false;
 
     public Drawable(float[] points, float[] color, int texture, float[] texcoords, int draw_method) {
         this.points = points;
@@ -77,6 +84,13 @@ public class Drawable {
             Shaders.setVBO(buffers, 2, Shaders.getFloatBuffer(this.texcoords));
             updateTexels = false;
         }
+
+        if (updateScissor) {
+            scissorX = scissorEdits[0];
+            scissorY = scissorEdits[1];
+            scissorWidth = scissorEdits[2];
+            scissorHeight = scissorEdits[3];
+        }
     }
 
     public void draw() {
@@ -90,6 +104,12 @@ public class Drawable {
         int aColor = GLES20.glGetAttribLocation(programHandle, "a_Color");
         int aTexCoords = GLES20.glGetAttribLocation(programHandle, "a_texCoord");
         int uTransform = GLES20.glGetUniformLocation(programHandle, "u_Transform");
+
+        if (useScissor) {
+            GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
+            GLES20.glScissor(scissorX, scissorY, scissorWidth, scissorHeight);
+        }
+
         if (transformMatrix == null) {
             GLES20.glUniformMatrix4fv(uTransform, 1, false, Shaders.getFloatBuffer(Matrices.identity));
         } else {
@@ -125,6 +145,10 @@ public class Drawable {
         GLES20.glDisableVertexAttribArray(aColor);
         if (texture > -1) {
             GLES20.glDisableVertexAttribArray(aTexCoords);
+        }
+
+        if (useScissor) {
+            GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
         }
     }
 
@@ -207,5 +231,29 @@ public class Drawable {
     public void setTransformMatrix(float[] transformMatrix) {
         /** Set the Transformation matrix of the drawable. */
         this.transformMatrix = transformMatrix;
+    }
+
+    public void setScissor(int x, int y, int width, int height) {
+        scissorX = x;
+        scissorY = y;
+        scissorWidth = width;
+        scissorHeight = height;
+        useScissor = true;
+    }
+
+    public void disableScissor() {
+        useScissor = false;
+    }
+
+    public void editScissor(int x, int y, int width, int height) {
+        if (scissorEdits == null) {
+            scissorEdits = new int[4];
+        }
+
+        scissorEdits[0] = x;
+        scissorEdits[1] = y;
+        scissorEdits[2] = width;
+        scissorEdits[3] = height;
+        updateScissor = true;
     }
 }

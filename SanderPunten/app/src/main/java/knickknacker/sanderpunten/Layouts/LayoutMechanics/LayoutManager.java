@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
+import android.content.res.Configuration;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -34,12 +35,14 @@ public class LayoutManager implements GLRenderCallback {
     public final static int INTERRUPT_NEW_PROJECTION = 4;
     public final static int INTERRUPT_FONT_LOADER = 5;
     public final static int INTERRUPT_LAYOUT_RELOAD = 6;
+    public final static int INTERRUPT_IGNORE = 7;
 
     private Layout[] layouts;
     private ConcurrentList<Layout> needLoad;
     private ConcurrentList<Layout> needUnload;
     private ConcurrentList<Layout> needReload;
     private ConcurrentList<TextManager> fontLoad;
+    private ConcurrentList<LayoutBox> toIgnore;
     private ArrayList<LayoutBox> directAccess;
     private GLRenderer renderer;
     private DrawView view;
@@ -48,12 +51,14 @@ public class LayoutManager implements GLRenderCallback {
 
     private boolean drawEdges = false;
 
-    private int width, height, worldWidth, worldHeight;
-    private float transX, transY;
+    private int width, height, worldWidth, worldHeight, projectionWidth, projectionHeight;
+    private float forceTransX, forceTransY, totalTransX, totalTransY;
     private boolean translate = false;
     private boolean resolutionSet = false;
 
     private float unit = 0;
+    private float scaleX = 0f;
+    private float scaleY = 0f;
     private int layoutCount;
     private int using = 0;
 
@@ -69,6 +74,7 @@ public class LayoutManager implements GLRenderCallback {
         needUnload = new ConcurrentList<>();
         fontLoad = new ConcurrentList<>();
         needReload = new ConcurrentList<>();
+        toIgnore = new ConcurrentList<>();
     }
 
     public void onCreate() {
@@ -95,36 +101,43 @@ public class LayoutManager implements GLRenderCallback {
 
     public void surfaceChangedCallback(int width, int height) {
         /** Initialize the layout or update it on the new resolution. */
-        Log.i("NEW RESOLUTION", width + " " + height);
-        this.width = worldWidth = width;
-        this.height = worldHeight = height;
-
-        Layout layout = layouts[using];
-        if (!resolutionSet) {
-            resolutionSet = true;
-            unit = width > height ? (float) height / 1000 : (float) width / 1000;
-            loadFonts();
-            layout.init(width, height);
-            renderer.setDrawables(layout.getDrawables());
-            renderer.initDrawables(layout.getDrawables());
-            layout.setDrawInitialized(true);
-            layout.setUsed(true);
-        } else {
-            for (Layout l : layouts) {
-                if (l != null && l.isUsed()) {
-                    l.init(width, height);
-                }
-            }
+        if (width == this.width && height == this.height) {
+            return;
         }
 
-        setProjection();
+        view.adjust();
+
+        Log.i("NEW RESOLUTION", width + " " + height);
+        this.width  = width;
+        this.height = height;
+
+        if (act.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            worldWidth = projectionWidth = view.getPortraitWidth();
+            worldHeight = projectionHeight = view.getPortraitHeight();
+        } else {
+            worldWidth = projectionWidth = view.getLandscapeWidth();
+            worldHeight = projectionHeight = view.getLandscapeHeight();
+        }
+
+        if (view.getKeyboardCallback() == null && !interrupt.hasSet(INTERRUPT_NEW_PROJECTION)) {
+            setScaleAndTrans();
+            resolution();
+            setProjection();
+        } else {
+            if (act.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                view.getKeyboardCallback().onToggle(view.getWidth(), view.getPortraitWidth(), view.getHeight(), view.getPortraitHeight());
+            } else {
+                view.getKeyboardCallback().onToggle(view.getWidth(), view.getLandscapeWidth(), view.getHeight(), view.getLandscapeHeight());
+            }
+
+        }
     }
 
     private void setProjection() {
-        float[] scale = Matrices.getProjectionMatrix(width, height, width, height);
-        float[] trans = Matrices.getTranslateMatrix(width, height);
+        float[] scale = Matrices.getProjectionMatrix(width, height, projectionWidth, projectionHeight);
+        float[] trans = Matrices.getTranslateMatrix(projectionWidth, projectionHeight);
         if (translate) {
-            float[] transAll = Matrices.getTranslationMatrix(transX, transY);
+            float[] transAll = Matrices.getTranslationMatrix(forceTransX, forceTransY);
             trans = Matrices.matMult(transAll, trans);
         }
 
@@ -132,14 +145,39 @@ public class LayoutManager implements GLRenderCallback {
         renderer.setProjection(proj);
     }
 
-    public void forceProjection(int viewWidth, int viewHeight, float x, float y) {
-        Log.i("FORCE PROJECTION", "width: " + viewWidth + " height: " + viewHeight + " x: " + x + " y: " + y);
-        transX = x;
-        transY = y;
-        worldWidth = viewWidth;
-        worldHeight = viewHeight;
+    public void forceProjection(float width, float height, float x, float y) {
+        Log.i("FORCE PROJECTION", "width: " + width + " height: " + height + " x: " + x + " y: " + y);
+        forceTransX = x;
+        forceTransY = y;
+        projectionWidth = (int) width;
+        projectionHeight = (int) height;
         translate = true;
+
+        setScaleAndTrans();
+
+        totalTransX += forceTransX;
+        totalTransY += forceTransY;
+
         interrupt.set(INTERRUPT_NEW_PROJECTION);
+    }
+
+    private void setScaleAndTrans() {
+        float[] scale = Matrices.getScreenScale(this.width, this.height, projectionWidth, projectionHeight);
+        scaleX = scale[0];
+        scaleY = scale[1];
+
+        float[] trans = Matrices.getTranslation(projectionWidth, projectionHeight);
+        totalTransX = trans[0];
+        totalTransY = trans[1];
+
+        Log.i("setScaleAndTrans", "width: " + this.width + " height: " + this.height + " scale0: " + scale[0] + " scale1: " + scale[1]);
+        Log.i("TEST1", (worldWidth * scale[0]) + " " + (worldHeight * scale[1]));
+//        LayoutBox root = layouts[using].getRoot();
+//        Log.i("TEST2", "Left: " + root.getLeft() / scaleY + " Bottom: " + root.getBottom() / scaleY +  " Width: " + root.getWidth() / scaleX + " Height: " + root.getHeight() / scaleY);
+        Log.i("TEST2", "Left: " + (0 + totalTransX) * scaleY + " Bottom: " + (0 + totalTransY) * scaleY +  " Width: " + (540 + totalTransX) * scaleX + " Height: " + (462 + totalTransY) * scaleY);
+
+
+
     }
 
     public void stopForceProjection() {
@@ -179,6 +217,40 @@ public class LayoutManager implements GLRenderCallback {
         if (interrupt.hasSet(INTERRUPT_LAYOUT_RELOAD)) {
             layoutReload();
         }
+
+        if (interrupt.hasSet(INTERRUPT_IGNORE)) {
+            ignore();
+        }
+    }
+
+    private void ignore() {
+        for (LayoutBox box : toIgnore.getCopy()) {
+            for (Drawable d : box.fetchDrawables()) {
+                renderer.removeDrawable(d);
+            }
+        }
+
+        interrupt.unset(INTERRUPT_IGNORE);
+    }
+
+    private void resolution() {
+        Layout layout = layouts[using];
+        if (!resolutionSet) {
+            resolutionSet = true;
+            unit = worldWidth > worldHeight ? (float) worldHeight / 1000 : (float) worldWidth / 1000;
+            loadFonts();
+            layout.init(worldWidth, worldHeight);
+            renderer.setDrawables(layout.getDrawables());
+            renderer.initDrawables(layout.getDrawables());
+            layout.setDrawInitialized(true);
+            layout.setUsed(true);
+        } else {
+            for (Layout l : layouts) {
+                if (l != null && l.isUsed()) {
+                    l.init(worldWidth, worldHeight);
+                }
+            }
+        }
     }
 
     private void loadFonts() {
@@ -193,7 +265,7 @@ public class LayoutManager implements GLRenderCallback {
 
     private void change() {
         Layout layout = layouts[using];
-        layout.init(width, height);
+        layout.init(worldWidth, worldHeight);
         Log.i("MANAGER", "CHANGE");
         renderer.setDrawables(layout.getDrawables());
         if (!layout.isDrawInitialized()) {
@@ -206,7 +278,7 @@ public class LayoutManager implements GLRenderCallback {
 
     private void layoutLoaded() {
         for (Layout l : needLoad.getCopy()) {
-            l.init(width, height);
+            l.init(worldWidth, worldHeight);
 
             if (!l.isDrawInitialized()) {
                 for (Drawable d : l.getDrawables()) {
@@ -232,7 +304,7 @@ public class LayoutManager implements GLRenderCallback {
 
     private void layoutReload() {
         for (Layout l : needReload.getCopy()) {
-            ArrayList<Drawable> newDrawables = l.init(width, height, false);
+            ArrayList<Drawable> newDrawables = l.init(worldWidth, worldHeight, false);
             for (Drawable d : newDrawables) {
                 renderer.newDrawable(d);
                 renderer.initDrawable(d);
@@ -252,6 +324,12 @@ public class LayoutManager implements GLRenderCallback {
 
         setProjection();
         interrupt.unset(INTERRUPT_NEW_PROJECTION);
+    }
+
+    public void toIgnore(LayoutBox box) {
+        box.setIgnore(true);
+        toIgnore.add(box);
+        interrupt.set(INTERRUPT_IGNORE);
     }
 
     private boolean hasOpenGL2() {
@@ -405,5 +483,61 @@ public class LayoutManager implements GLRenderCallback {
     public Activity getActivity() {
         /** Get the activity that uses the renderer. */
         return act;
+    }
+
+    public int getWorldWidth() {
+        return worldWidth;
+    }
+
+    public void setWorldWidth(int worldWidth) {
+        this.worldWidth = worldWidth;
+    }
+
+    public int getWorldHeight() {
+        return worldHeight;
+    }
+
+    public void setWorldHeight(int worldHeight) {
+        this.worldHeight = worldHeight;
+    }
+
+    public float getScaleX() {
+        return scaleX;
+    }
+
+    public float getScaleY() {
+        return scaleY;
+    }
+
+    public float getForceTransX() {
+        return forceTransX;
+    }
+
+    public void setForceTransX(float forceTransX) {
+        this.forceTransX = forceTransX;
+    }
+
+    public float getForceTransY() {
+        return forceTransY;
+    }
+
+    public void setForceTransY(float forceTransY) {
+        this.forceTransY = forceTransY;
+    }
+
+    public float getTotalTransX() {
+        return totalTransX;
+    }
+
+    public void setTotalTransX(float totalTransX) {
+        this.totalTransX = totalTransX;
+    }
+
+    public float getTotalTransY() {
+        return totalTransY;
+    }
+
+    public void setTotalTransY(float totalTransY) {
+        this.totalTransY = totalTransY;
     }
 }

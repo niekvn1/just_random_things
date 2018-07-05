@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
@@ -32,6 +34,7 @@ public class LayoutBox {
     protected TouchCallback touch;
     protected String id = "";
     protected float zIndex = 1.0f;
+    protected boolean ignore = false;
 
     public LayoutBox(LayoutManager manager, LayoutBox parent) {
         this.manager = manager;
@@ -47,7 +50,9 @@ public class LayoutBox {
     }
 
     public LayoutBox(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
-        this(manager, parent);
+        this.manager = manager;
+        this.parent = parent;
+
         this.relative = relative;
         if (!relative) {
             this.left = left;
@@ -63,55 +68,76 @@ public class LayoutBox {
 
         this.width = this.right - this.left;
         this.height = this.top - this.bottom;
+
+        if (parent != null) {
+            this.zIndex = parent.getzIndex() - 0.0001f;
+            this.parent.addChild(this);
+        }
     }
 
     public void initAll() {
-        init();
-        initChilderen();
+        if (!ignore) {
+            init();
+            initChilderen();
+        }
     }
 
     public void initAll(float left, float right, float bottom, float top) {
-        init(left, right,bottom, top);
-        initChilderen();
+        if (!ignore) {
+            init(left, right,bottom, top);
+            initChilderen();
+        }
     }
 
     public void init() {
-        if (relative) {
-            float pwidth = parent.getWidth();
-            float pheight = parent.getHeight();
-            float pleft = parent.getLeft();
-            float pbottom = parent.getBottom();
+        if (!ignore) {
+            if (relative) {
+                float pwidth = parent.getWidth();
+                float pheight = parent.getHeight();
+                float pleft = parent.getLeft();
+                float pbottom = parent.getBottom();
 
-            left = pleft + rLeft * pwidth;
-            right = pleft + rRight * pwidth;
-            bottom = pbottom + rBottom * pheight;
-            top = pbottom + rTop * pheight;
+                left = pleft + rLeft * pwidth;
+                right = pleft + rRight * pwidth;
+                bottom = pbottom + rBottom * pheight;
+                top = pbottom + rTop * pheight;
+            }
+
+            this.width = this.right - this.left;
+            this.height = this.top - this.bottom;
         }
-
-        this.width = this.right - this.left;
-        this.height = this.top - this.bottom;
     }
 
     public void initChilderen() {
-        for (LayoutBox child : children.getCopy()) {
-            child.initAll();
+        if (!ignore) {
+            for (LayoutBox child : children.getCopy()) {
+                child.initAll();
+            }
         }
     }
 
     public void init(float width, float height) {
-        init(0f, width , 0f, height);
+        if (!ignore) {
+            init(0f, width , 0f, height);
+        }
     }
 
     public void init(float left, float right, float bottom, float top) {
-        this.left = left;
-        this.right = right;
-        this.bottom = bottom;
-        this.top = top;
-        init();
+        if (!ignore) {
+            this.left = left;
+            this.right = right;
+            this.bottom = bottom;
+            this.top = top;
+            init();
+        }
     }
 
     public ArrayList<Drawable> toDrawable(boolean edges) {
         ArrayList<Drawable> returnDrawables = new ArrayList<>();
+        if (ignore) {
+            return returnDrawables;
+        }
+
         if (drawable == null) {
             if (backgroundTexture != -1 || color != null) {
                 drawable = new TriangleStrip(DrawObjects.getBackgroundPoints(this.getCorners(), zIndex),
@@ -119,9 +145,17 @@ public class LayoutBox {
                                              DrawObjects.get_background_texcoords());
                 drawable.setTransformMatrix(transformMatrix);
                 drawable.setReady(true);
+                if (parent != null) {
+                    int[] scissors = scissor();
+                    drawable.setScissor(scissors[0], scissors[1], scissors[2], scissors[3]);
+                }
             }
         } else {
             drawable.editPoints(DrawObjects.getBackgroundPoints(this.getCorners(), zIndex));
+            if (parent != null) {
+                int[] scissors = scissor();
+                drawable.editScissor(scissors[0], scissors[1], scissors[2], scissors[3]);
+            }
         }
 
         returnDrawables.add(drawable);
@@ -131,6 +165,16 @@ public class LayoutBox {
         }
 
         return returnDrawables;
+    }
+
+    protected int[] scissor() {
+        float left = (parent.getLeft() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2);
+        float right = (float) Math.ceil((parent.getRight() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2));
+        float bottom = (parent.getBottom() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2);
+        float top = (float) Math.ceil((parent.getTop() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2));
+        int width = (int) (right - left);
+        int height = (int) (top - bottom);
+        return new int[] {(int) left, (int) bottom, width, height};
     }
 
     public void onTouchEvent(TouchData data) {
@@ -147,6 +191,11 @@ public class LayoutBox {
         } else if (data.getType() == TouchListener.TOUCH_CANCEL) {
             onTouchCancel(data);
             onTouchEventChildren(data);
+        } else if (data.getType() == TouchListener.TOUCH_MOVE && data.getPointerCount() == 1) {
+            if (touchHit(data.getX(), data.getY())) {
+                onTouchMove(data);
+                onTouchEventChildren(data);
+            }
         }
     }
 
@@ -164,6 +213,10 @@ public class LayoutBox {
         // Do Things ...
     }
 
+    protected void onTouchMove(TouchData data) {
+
+    }
+
     protected void onTouchEventChildren(TouchData data) {
         for (LayoutBox child : children.getCopy()) {
             child.onTouchEvent(data);
@@ -171,12 +224,28 @@ public class LayoutBox {
     }
 
     protected boolean touchHit(float x_, float y_) {
-        float x = x_ * manager.getWidth();
-        float y = y_ * manager.getHeight();
+        float x = x_ * manager.getWorldWidth();
+        float y = y_ * manager.getWorldHeight();
         if (x >= left && x <= right && y >= bottom && y <= top) {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public ArrayList<Drawable> fetchDrawables() {
+        ArrayList<Drawable> drawables = new ArrayList<>();
+        fetchDrawables(drawables);
+        return drawables;
+    }
+
+    public void fetchDrawables(ArrayList<Drawable> drawables) {
+        if (drawable != null) {
+            drawables.add(drawable);
+        }
+
+        for (LayoutBox child : children.getCopy()) {
+            child.fetchDrawables(drawables);
         }
     }
 
@@ -295,5 +364,17 @@ public class LayoutBox {
 
     public void setzIndex(float zIndex) {
         this.zIndex = zIndex;
+    }
+
+    public boolean isIgnore() {
+        return ignore;
+    }
+
+    public void setIgnore(boolean ignore) {
+        this.ignore = ignore;
+    }
+
+    public boolean isRelative() {
+        return relative;
     }
 }

@@ -38,10 +38,9 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
         root.setBackgroundTexture(layoutManager.getTextures()[5]);
         root.setColor(Colors.WHITE);
 
-        chatLog = new List(layoutManager, root, 0.05f, 0.95f, 0.20f, 0.95f, true);
+        chatLog = new List(layoutManager, root, 0.05f, 0.95f, 0.20f, 0.45f, true);
         chatLog.setColor(Colors.WHITE_ALPHA_6);
         chatLog.setMargin(20);
-        chatLog.setChildMargin(10);
 
         LayoutBox chatBar = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.05f, 0.15f, true);
         chatBar.setColor(Colors.WHITE_ALPHA_6);
@@ -65,8 +64,10 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
 
     @Override
     public void onTextCommitted(TextBar textBar) {
-        callback.onChatSend(textBar.getText());
-        textBar.setText("");
+        if (textBar.getText() != "") {
+            callback.onChatSend(textBar.getText());
+            textBar.setText("");
+        }
     }
 
     public void onChatReceive(String msg) {

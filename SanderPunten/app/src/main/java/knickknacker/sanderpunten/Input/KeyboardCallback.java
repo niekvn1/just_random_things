@@ -10,5 +10,5 @@ public interface KeyboardCallback {
     void keyboardInput(int keyCode, KeyEvent event);
 
     /** Receives the height after the keyboard change in here. */
-    void onToggle(int height, int oldHeight);
+    void onToggle(float width, float defaultWidth, float height, float defaultHeight);
 }

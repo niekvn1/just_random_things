@@ -15,7 +15,7 @@ public abstract class Matrices {
 
     public static float[] getProjectionMatrix(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
         /** Get the Projection matrix for the given widths and heights. */
-        float[] scales = getScale(screenWidth, screenHeight, worldWidth, worldHeight);
+        float[] scales = getGLScale(screenWidth, screenHeight, worldWidth, worldHeight);
         float[] m = {
                 scales[0], 0f, 0f, 0f,
                 0f, scales[1], 0f, 0f,
@@ -40,7 +40,8 @@ public abstract class Matrices {
 
     public static float[] getTranslateMatrix(float worldWidth, float worldHeight) {
         /** Get the translation matrix for the given world width and height. */
-        return getTranslationMatrix(-worldWidth / 2, -worldHeight / 2);
+        float[] xy = getTranslation(worldWidth, worldHeight);
+        return getTranslationMatrix(xy[0], xy[1]);
     }
 
     public static float[] matMult(float[] A, float[] B) {
@@ -67,7 +68,11 @@ public abstract class Matrices {
         return C;
     }
 
-    private static float[] getScale(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
+    public static float[] getTranslation(float worldWidth, float worldHeight) {
+        return new float[] {-worldWidth / 2, -worldHeight / 2};
+    }
+
+    public static float[] getGLScale(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
         /** Get the x and y scale factors */
         float widthRatio = worldWidth / screenWidth;
         float heightRatio = worldHeight / screenHeight;
@@ -80,14 +85,38 @@ public abstract class Matrices {
 
             screenScale = screenHeight / screenWidth;
             worldScale = worldHeight / worldWidth;
-            scaleY = worldScale/ screenScale / worldHeight * 2;
+            scaleY = worldScale / screenScale / worldHeight * 2;
         } else {
             screenScale = screenWidth / screenHeight;
             worldScale = worldWidth / worldHeight;
-            scaleX = worldScale/ screenScale / worldWidth * 2;
+            scaleX = worldScale / screenScale / worldWidth * 2;
 
 
             scaleY = 1f / worldHeight * 2;
+        }
+
+        return new float[] {scaleX, scaleY};
+    }
+
+    public static float[] getScreenScale(float screenWidth, float screenHeight, float worldWidth, float worldHeight) {
+        float widthRatio = worldWidth / screenWidth;
+        float heightRatio = worldHeight / screenHeight;
+        float screenScale;
+        float worldScale;
+        float scaleX;
+        float scaleY;
+        if (widthRatio > heightRatio) {
+            scaleX =  screenWidth / worldWidth;
+
+            screenScale = screenHeight / screenWidth;
+            worldScale = worldHeight / worldWidth;
+            scaleY = worldScale / screenScale / worldHeight * screenHeight;
+        } else {
+            screenScale = screenWidth / screenHeight;
+            worldScale = worldWidth / worldHeight;
+            scaleX = worldScale / screenScale / worldWidth  * screenWidth;
+
+            scaleY = screenHeight / worldHeight;
         }
 
         return new float[] {scaleX, scaleY};

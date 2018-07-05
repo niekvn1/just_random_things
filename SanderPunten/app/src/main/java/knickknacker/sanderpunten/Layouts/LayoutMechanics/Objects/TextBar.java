@@ -76,17 +76,12 @@ public class TextBar extends TextBox implements KeyboardCallback {
         }
     }
 
-    public void onToggle(int height, int oldHeight) {
-        if (height != oldHeight) {
-            float transY = bottom - 50 * manager.getUnit();
-            if (transY > oldHeight - height) {
-                manager.forceProjection(manager.getWidth(), oldHeight, 0, -(oldHeight - height));
-            } else {
-                manager.forceProjection(manager.getWidth(), oldHeight, 0, -transY);
-            }
+    public void onToggle(float width, float defaultWidth, float height, float defaultHeight) {
+        float transY = bottom - 50 * manager.getUnit();
+        if (transY > defaultHeight - height) {
+            manager.forceProjection(manager.getWorldWidth() * (width / defaultWidth), manager.getWorldHeight() * (height / defaultHeight), 0, -(defaultHeight - height));
         } else {
-            manager.stopForceProjection();
-            manager.getView().setKeyboardCallback(null);
+            manager.forceProjection(manager.getWorldWidth() * (width / defaultWidth), manager.getWorldHeight() * (height / defaultHeight), 0, -transY);
         }
     }
 

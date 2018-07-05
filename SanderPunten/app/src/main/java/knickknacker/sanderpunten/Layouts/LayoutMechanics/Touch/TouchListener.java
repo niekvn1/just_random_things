@@ -34,7 +34,7 @@ public class TouchListener implements View.OnTouchListener {
 
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                Log.i("Down", "x: " + x + " y: " + y + " id: " + pointerID);
+//                Log.i("Down", "x: " + x + " y: " + y + " id: " + pointerID);
 
                 data.addPointer(pointerID, x, y);
                 data.setType(TOUCH_DOWN);
@@ -58,11 +58,12 @@ public class TouchListener implements View.OnTouchListener {
                 data.setType(TOUCH_UP);
                 break;
             case MotionEvent.ACTION_MOVE:
-//                System.out.println("[Move] x: " + x + " y: " + y + " id: " + pointerID);
+//                Log.i("Move", "x: " + x + " y: " + y + " id: " + pointerID);
                 for (int id : data.getPointerIDs()) {
                     if (id >= 0) {
-                        data.setX(id, event.getX(id));
-                        data.setY(id, event.getY(id));
+//                        Log.i("FOR", "x: " + event.getX(event.findPointerIndex(id)) / layoutManager.getWidth() + " y: " + event.getY(event.findPointerIndex(id)) / layoutManager.getHeight() + " id: " + id);
+                        data.setX(id, event.getX(event.findPointerIndex(id)) / layoutManager.getWidth());
+                        data.setY(id, 1.0f - event.getY(event.findPointerIndex(id)) / layoutManager.getHeight());
                     }
                 }
 
@@ -71,7 +72,10 @@ public class TouchListener implements View.OnTouchListener {
             case MotionEvent.ACTION_CANCEL:
                 data.setType(TOUCH_CANCEL);
                 data.cancel();
+                break;
         }
+
+        Log.i("ID", data.getPointerIDs()[0] + " " + data.getPointerIDs()[1] + " " + data.getPointerIDs()[2] + " " + data.getPointerIDs()[3] + " " + data.getPointerIDs()[4] + " ");
 
         this.data.setIdOfInterest(pointerID);
         root.onTouchEvent(this.data);
@@ -108,6 +112,7 @@ public class TouchListener implements View.OnTouchListener {
 
         public void addPointer(int pointerID, float x, float y) {
             if (pointerID < MAX_POINTERS) {
+                this.pointerIDs[pointerID] = pointerID;
                 this.x[pointerID] = x;
                 this.y[pointerID] = y;
                 pointerCount++;

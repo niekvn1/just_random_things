@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
@@ -73,18 +75,37 @@ public class TextBox extends LayoutBox {
     @Override
     public ArrayList<Drawable> toDrawable(boolean edges) {
         ArrayList<Drawable> returnDrawables = super.toDrawable(edges);
+        if (ignore) {
+            return returnDrawables;
+        }
+
         if (textDraw == null) {
             textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
             if (textDraw != null) {
                 textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
                 textDraw .setReady(true);
+                if (parent != null) {
+                    int[] scissors = scissor();
+                    textDraw.setScissor(scissors[0], scissors[1], scissors[2], scissors[3]);
+                }
             }
         } else {
             editText();
+            int[] scissors = scissor();
+            textDraw.editScissor(scissors[0], scissors[1], scissors[2], scissors[3]);
         }
 
         returnDrawables.add(textDraw);
         return returnDrawables;
+    }
+
+    @Override
+    public void fetchDrawables(ArrayList<Drawable> drawables) {
+        if (textDraw != null) {
+            drawables.add(textDraw);
+        }
+
+        super.fetchDrawables(drawables);
     }
 
     public Text getTextDraw() {
