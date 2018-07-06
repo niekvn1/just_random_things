@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Tools;
+package knickknacker.opengldrawables.Drawing.Tools;
 
 /**
  * Source: http://fractiousg.blogspot.nl/2012/04/rendering-text-in-opengl-on-android.html

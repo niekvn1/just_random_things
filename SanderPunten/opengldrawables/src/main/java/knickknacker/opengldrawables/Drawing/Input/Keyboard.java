@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Input;
+package knickknacker.opengldrawables.Drawing.Input;
 
 import android.content.Context;
 import android.view.View;

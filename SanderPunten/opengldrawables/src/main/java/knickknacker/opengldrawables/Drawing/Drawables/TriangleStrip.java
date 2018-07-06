@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Drawables;
+package knickknacker.opengldrawables.Drawing.Drawables;
 
 import android.opengl.GLES20;
 

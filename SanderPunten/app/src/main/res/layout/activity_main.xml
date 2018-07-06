@@ -12,7 +12,7 @@
         android:orientation="vertical" >
 
 
-        <knickknacker.sanderpunten.Rendering.Drawing.Tools.DrawView
+        <knickknacker.opengldrawables.Drawing.Tools.DrawView
             android:id="@+id/drawView2"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

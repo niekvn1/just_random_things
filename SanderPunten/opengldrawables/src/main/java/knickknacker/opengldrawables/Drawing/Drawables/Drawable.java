@@ -1,10 +1,10 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Drawables;
+package knickknacker.opengldrawables.Drawing.Drawables;
 
 import android.opengl.GLES20;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.Matrices;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.Shaders;
+import knickknacker.opengldrawables.Drawing.Properties.Colors;
+import knickknacker.opengldrawables.Drawing.Tools.Matrices;
+import knickknacker.opengldrawables.Drawing.Tools.Shaders;
 
 /** This class creates VBOs for the position, color and texture coordinates of something that you
  * want to be drawn by the GLRenderer. After creating a Drawable with the constructor it is not

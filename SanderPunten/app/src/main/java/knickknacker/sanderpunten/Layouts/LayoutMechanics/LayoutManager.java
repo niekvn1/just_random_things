@@ -9,16 +9,16 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-import knickknacker.sanderpunten.Input.Keyboard;
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.DrawView;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.GLRenderCallback;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.GLRenderer;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.Matrices;
+import knickknacker.opengldrawables.Drawing.Input.Keyboard;
+import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
+import knickknacker.opengldrawables.Drawing.Tools.DrawView;
+import knickknacker.opengldrawables.Drawing.Tools.GLRenderCallback;
+import knickknacker.opengldrawables.Drawing.Tools.GLRenderer;
+import knickknacker.opengldrawables.Drawing.Tools.Matrices;
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 import knickknacker.sanderpunten.Utilities.Flag;
 import knickknacker.tcp.Networking.ConcurrentList;
 
@@ -36,6 +36,7 @@ public class LayoutManager implements GLRenderCallback {
     public final static int INTERRUPT_FONT_LOADER = 5;
     public final static int INTERRUPT_LAYOUT_RELOAD = 6;
     public final static int INTERRUPT_IGNORE = 7;
+    public final static int INTERRUPT_LOAD_BOXES = 8;
 
     private Layout[] layouts;
     private ConcurrentList<Layout> needLoad;
@@ -43,6 +44,7 @@ public class LayoutManager implements GLRenderCallback {
     private ConcurrentList<Layout> needReload;
     private ConcurrentList<TextManager> fontLoad;
     private ConcurrentList<LayoutBox> toIgnore;
+    private ConcurrentList<LayoutBox> loadBoxes;
     private ArrayList<LayoutBox> directAccess;
     private GLRenderer renderer;
     private DrawView view;
@@ -75,6 +77,7 @@ public class LayoutManager implements GLRenderCallback {
         fontLoad = new ConcurrentList<>();
         needReload = new ConcurrentList<>();
         toIgnore = new ConcurrentList<>();
+        loadBoxes = new ConcurrentList<>();
     }
 
     public void onCreate() {
@@ -221,6 +224,22 @@ public class LayoutManager implements GLRenderCallback {
         if (interrupt.hasSet(INTERRUPT_IGNORE)) {
             ignore();
         }
+
+        if (interrupt.hasSet(INTERRUPT_LOAD_BOXES)) {
+            loadBoxes();
+        }
+    }
+
+    private void loadBoxes() {
+        for (LayoutBox box : loadBoxes.getCopy()) {
+            for (Drawable d: box.toDrawable(drawEdges)) {
+                renderer.newDrawable(d);
+                renderer.initDrawable(d);
+            }
+        }
+
+        loadBoxes.clear();
+        interrupt.unset(INTERRUPT_LOAD_BOXES);
     }
 
     private void ignore() {
@@ -230,6 +249,7 @@ public class LayoutManager implements GLRenderCallback {
             }
         }
 
+        toIgnore.clear();
         interrupt.unset(INTERRUPT_IGNORE);
     }
 
@@ -240,6 +260,7 @@ public class LayoutManager implements GLRenderCallback {
             unit = worldWidth > worldHeight ? (float) worldHeight / 1000 : (float) worldWidth / 1000;
             loadFonts();
             layout.init(worldWidth, worldHeight);
+            layout.initDrawables();
             renderer.setDrawables(layout.getDrawables());
             renderer.initDrawables(layout.getDrawables());
             layout.setDrawInitialized(true);
@@ -248,6 +269,7 @@ public class LayoutManager implements GLRenderCallback {
             for (Layout l : layouts) {
                 if (l != null && l.isUsed()) {
                     l.init(worldWidth, worldHeight);
+                    l.initDrawables();
                 }
             }
         }
@@ -266,6 +288,7 @@ public class LayoutManager implements GLRenderCallback {
     private void change() {
         Layout layout = layouts[using];
         layout.init(worldWidth, worldHeight);
+        layout.initDrawables();
         Log.i("MANAGER", "CHANGE");
         renderer.setDrawables(layout.getDrawables());
         if (!layout.isDrawInitialized()) {
@@ -279,6 +302,7 @@ public class LayoutManager implements GLRenderCallback {
     private void layoutLoaded() {
         for (Layout l : needLoad.getCopy()) {
             l.init(worldWidth, worldHeight);
+            l.initDrawables();
 
             if (!l.isDrawInitialized()) {
                 for (Drawable d : l.getDrawables()) {
@@ -304,7 +328,8 @@ public class LayoutManager implements GLRenderCallback {
 
     private void layoutReload() {
         for (Layout l : needReload.getCopy()) {
-            ArrayList<Drawable> newDrawables = l.init(worldWidth, worldHeight, false);
+            l.init(worldWidth, worldHeight);
+            ArrayList<Drawable> newDrawables = l.initDrawables(false);
             for (Drawable d : newDrawables) {
                 renderer.newDrawable(d);
                 renderer.initDrawable(d);
@@ -319,6 +344,7 @@ public class LayoutManager implements GLRenderCallback {
         for (Layout l : layouts) {
             if (l != null && l.isUsed()) {
                 l.init(worldWidth, worldHeight);
+                l.initDrawables();
             }
         }
 
@@ -330,6 +356,12 @@ public class LayoutManager implements GLRenderCallback {
         box.setIgnore(true);
         toIgnore.add(box);
         interrupt.set(INTERRUPT_IGNORE);
+    }
+
+    public void load(LayoutBox box) {
+        box.setIgnore(false);
+        loadBoxes.add(box);
+        interrupt.set(INTERRUPT_LOAD_BOXES);
     }
 
     private boolean hasOpenGL2() {
@@ -358,7 +390,7 @@ public class LayoutManager implements GLRenderCallback {
     public void switchLayout(int index) {
         /** Switch to the layout save on the given index in this manager. */
         Layout layout = layouts[index];
-        touchListener.setRoot(layout.getRoot());
+        touchListener.setLayout(layout);
         layouts[using].setUsed(false);
         using = index;
         layout.setUsed(true);
@@ -370,7 +402,7 @@ public class LayoutManager implements GLRenderCallback {
          * is true, the TouchListener will be set to the loaded layout. */
         Layout layout = layouts[index];
         if (touch) {
-            touchListener.setRoot(layout.getRoot());
+            touchListener.setLayout(layout);
         }
 
         if (!layout.isUsed()) {
@@ -382,7 +414,7 @@ public class LayoutManager implements GLRenderCallback {
 
     public void unload(int index) {
         /** Unload a loaded layout. */
-        touchListener.setRoot(layouts[using].getRoot());
+        touchListener.setLayout(layouts[using]);
         layouts[index].setUsed(false);
         needUnload.add(layouts[index]);
         interrupt.set(INTERRUPT_LAYOUT_UNLOAD);
@@ -441,8 +473,8 @@ public class LayoutManager implements GLRenderCallback {
         return null;
     }
 
-    public void setTouchListenerRoot(LayoutBox box) {
-        touchListener.setRoot(box);
+    public void setTouchListenerLayout(Layout layout) {
+        touchListener.setLayout(layout);
     }
 
     public DrawView getView() {
@@ -450,9 +482,9 @@ public class LayoutManager implements GLRenderCallback {
         return view;
     }
 
-    public LayoutBox getRoot() {
+    public Layout getLayout() {
         /** Get the root of the used layout. */
-        return layouts[using].getRoot();
+        return layouts[using];
     }
 
     public GLRenderer getRenderer() {

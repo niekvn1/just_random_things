@@ -1,12 +1,11 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.TriangleStrip;
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
+import knickknacker.sanderpunten.Layouts.Layout;
+import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
+import knickknacker.opengldrawables.Drawing.Drawables.TriangleStrip;
+import knickknacker.opengldrawables.Drawing.Properties.Colors;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchCallback;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
@@ -30,27 +29,31 @@ public class LayoutBox {
     protected boolean relative = false;
     protected Drawable drawable = null;
     protected ArrayList<Drawable> edges = null;
-    protected LayoutManager manager = null;
+    protected Layout layout = null;
     protected TouchCallback touch;
     protected String id = "";
     protected float zIndex = 1.0f;
     protected boolean ignore = false;
 
-    public LayoutBox(LayoutManager manager, LayoutBox parent) {
-        this.manager = manager;
+    public LayoutBox(Layout layout) {
+        this.layout = layout;
+        this.parent = null;
+    }
+
+    public LayoutBox(LayoutBox parent) {
         this.parent = parent;
         if (parent != null) {
+            layout = parent.getLayout();
             this.zIndex = parent.getzIndex() - 0.0001f;
             this.parent.addChild(this);
         }
     }
 
-    public LayoutBox(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
-        this(manager, parent, 0f, width , 0f, height, relative);
+    public LayoutBox(LayoutBox parent, float width, float height, boolean relative) {
+        this(parent, 0f, width , 0f, height, relative);
     }
 
-    public LayoutBox(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
-        this.manager = manager;
+    public LayoutBox(LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         this.parent = parent;
 
         this.relative = relative;
@@ -70,6 +73,7 @@ public class LayoutBox {
         this.height = this.top - this.bottom;
 
         if (parent != null) {
+            layout = parent.getLayout();
             this.zIndex = parent.getzIndex() - 0.0001f;
             this.parent.addChild(this);
         }
@@ -168,6 +172,7 @@ public class LayoutBox {
     }
 
     protected int[] scissor() {
+        LayoutManager manager = layout.getManager();
         float left = (parent.getLeft() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2);
         float right = (float) Math.ceil((parent.getRight() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2));
         float bottom = (parent.getBottom() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2);
@@ -224,6 +229,7 @@ public class LayoutBox {
     }
 
     protected boolean touchHit(float x_, float y_) {
+        LayoutManager manager = layout.getManager();
         float x = x_ * manager.getWorldWidth();
         float y = y_ * manager.getWorldHeight();
         if (x >= left && x <= right && y >= bottom && y <= top) {
@@ -376,5 +382,13 @@ public class LayoutBox {
 
     public boolean isRelative() {
         return relative;
+    }
+
+    public Layout getLayout() {
+        return layout;
+    }
+
+    public void setLayout(Layout layout) {
+        this.layout = layout;
     }
 }

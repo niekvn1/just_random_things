@@ -1,5 +1,6 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 
 /**
@@ -13,17 +14,21 @@ public class FitBox extends LayoutBox {
     private boolean childrenSet = false;
     private boolean fit;
 
-    public FitBox(LayoutManager manager, LayoutBox parent, boolean fit) {
-        super(manager, parent);
+    public FitBox(Layout layout) {
+        super(layout);
+    }
+
+    public FitBox(LayoutBox parent, boolean fit) {
+        super(parent);
         this.fit = fit;
     }
 
-    public FitBox(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative, boolean fit) {
-        this(manager, parent, 0f, width , 0f, height, relative, fit);
+    public FitBox(LayoutBox parent, float width, float height, boolean relative, boolean fit) {
+        this(parent, 0f, width , 0f, height, relative, fit);
     }
 
-    public FitBox(LayoutManager manager, LayoutBox parent, float left_, float right_, float bottom_, float top_, boolean relative, boolean fit) {
-        super(manager, parent, left_, right_, bottom_, top_, relative);
+    public FitBox(LayoutBox parent, float left_, float right_, float bottom_, float top_, boolean relative, boolean fit) {
+        super(parent, left_, right_, bottom_, top_, relative);
         this.fit = fit;
     }
 
@@ -47,7 +52,7 @@ public class FitBox extends LayoutBox {
     }
 
     public void exactFit() {
-        float margin = manager.getUnit() * childMargin;
+        float margin = layout.getManager().getUnit() * childMargin;
         float button_height = (height - (childCount - 1) * margin) / childCount;
         for (int i = 0; i < childCount; i++) {
             float[] corners = new float[4];

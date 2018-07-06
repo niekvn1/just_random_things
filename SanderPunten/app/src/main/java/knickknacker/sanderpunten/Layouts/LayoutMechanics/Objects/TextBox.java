@@ -1,14 +1,12 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Text;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.Matrices;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
+import knickknacker.sanderpunten.Layouts.Layout;
+import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
+import knickknacker.opengldrawables.Drawing.Drawables.Text;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Tools.Matrices;
 
 /**
  * Created by Niek on 28-5-2018.
@@ -23,16 +21,20 @@ public class TextBox extends LayoutBox {
     float[] textColor = null;
     private boolean first = true;
 
-    public TextBox(LayoutManager manager, LayoutBox parent) {
-        super(manager, parent);
+    public TextBox(Layout layout) {
+        super(layout);
     }
 
-    public TextBox(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
-        this(manager, parent, 0f, width , 0f, height, relative);
+    public TextBox(LayoutBox parent) {
+        super(parent);
     }
 
-    public TextBox(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
-        super(manager, parent, left, right, bottom, top, relative);
+    public TextBox(LayoutBox parent, float width, float height, boolean relative) {
+        this(parent, 0f, width , 0f, height, relative);
+    }
+
+    public TextBox(LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
+        super(parent, left, right, bottom, top, relative);
     }
 
     public void setTextManager(TextManager textManager) {

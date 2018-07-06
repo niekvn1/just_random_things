@@ -2,6 +2,7 @@ package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
 import android.util.Log;
 
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
 
@@ -13,16 +14,20 @@ public class Button extends LayoutBox {
     private float[] hitColor = null;
     private boolean down = false;
 
-    public Button(LayoutManager manager, LayoutBox parent) {
-        super(manager, parent);
+    public Button(Layout layout) {
+        super(layout);
     }
 
-    public Button(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
-        super(manager, parent, 0f, width , 0f, height, relative);
+    public Button(LayoutBox parent) {
+        super(parent);
     }
 
-    public Button(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
-        super(manager, parent, left, right, bottom, top, relative);
+    public Button(LayoutBox parent, float width, float height, boolean relative) {
+        super(parent, 0f, width , 0f, height, relative);
+    }
+
+    public Button(LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
+        super(parent, left, right, bottom, top, relative);
     }
 
     @Override

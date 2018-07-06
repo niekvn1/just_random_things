@@ -2,7 +2,9 @@ package knickknacker.sanderpunten.Layouts;
 
 import java.util.ArrayList;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchSubscriber;
+import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 
@@ -15,27 +17,37 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 
 public class Layout {
     private LayoutBox root;
+    private LayoutBox touchRoot;
     private ArrayList<Drawable> drawables;
     private boolean initialized = false;
     private boolean drawInitialized = false;
     private boolean edges;
     private boolean used = false;
+    private LayoutManager manager;
+    private ArrayList<TouchSubscriber> touchSubscribers;
 
     public Layout(LayoutManager manager, boolean edges) {
-        this.root = new LayoutBox(manager, null);
+        this.manager = manager;
+        this.root = new LayoutBox(this);
+        touchRoot = root;
         drawables = new ArrayList<>();
+        touchSubscribers = new ArrayList<>();
         this.edges = edges;
     }
 
-    public void init(float width, float height) {
-        init(width, height, initialized);
-    }
 
-    public ArrayList<Drawable> init(float width, float height, boolean all) {
+    public void init(float width, float height) {
         /** Initialize the layout with a width and a height, this will start a traversal of the
          * LayoutBox tree, editing their position points. */
         root.init(width, height);
         root.initChilderen();
+    }
+
+    public void initDrawables() {
+        initDrawables(initialized);
+    }
+
+    public ArrayList<Drawable> initDrawables(boolean all) {
         ArrayList<Drawable> collection = new ArrayList<>();
         initDrawables(collection, root, all);
         if (!initialized) {
@@ -93,5 +105,36 @@ public class Layout {
     public void setUsed(boolean used) {
         /** Set used. */
         this.used = used;
+    }
+
+    public LayoutManager getManager() {
+        return manager;
+    }
+
+    public void setManager(LayoutManager manager) {
+        this.manager = manager;
+    }
+
+    public void reload() {
+        manager.reload(this);
+    }
+
+    public void onTouch(TouchListener.TouchData data) {
+        touchRoot.onTouchEvent(data);
+        for (TouchSubscriber sub : touchSubscribers) {
+            sub.onTouchSub(data);
+        }
+    }
+
+    public void setTouchRoot(LayoutBox touchRoot) {
+        this.touchRoot = touchRoot;
+    }
+
+    public void subscribeToTouch(TouchSubscriber sub) {
+        touchSubscribers.add(sub);
+    }
+
+    public void unsubscripeToTouch(TouchSubscriber sub) {
+        touchSubscribers.remove(sub);
     }
 }

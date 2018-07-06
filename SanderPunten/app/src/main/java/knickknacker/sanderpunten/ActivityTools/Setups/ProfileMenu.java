@@ -10,8 +10,8 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBar;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBarCallback;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBox;
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Properties.Colors;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 
 public class ProfileMenu extends LayoutSetup implements TextBarCallback {
     private final String TEXTBAR_NAME = "textbar_name";
@@ -33,17 +33,17 @@ public class ProfileMenu extends LayoutSetup implements TextBarCallback {
         root.setBackgroundTexture(layoutManager.getTextures()[3]);
         root.setColor(Colors.WHITE);
 
-        LayoutBox upper = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.60f, 0.95f, true);
-        LayoutBox bottom = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.05f, 0.50f, true);
+        LayoutBox upper = new LayoutBox(root, 0.05f, 0.95f, 0.60f, 0.95f, true);
+        LayoutBox bottom = new LayoutBox(root, 0.05f, 0.95f, 0.05f, 0.50f, true);
         upper.setColor(Colors.WHITE_ALPHA_6);
         bottom.setColor(Colors.WHITE_ALPHA_6);
 
-        TextBox pre_name = new TextBox(layoutManager, bottom, 0.05f, 0.25f, 0.8f, 0.95f, true);
+        TextBox pre_name = new TextBox(bottom, 0.05f, 0.25f, 0.8f, 0.95f, true);
         pre_name.setColor(Colors.GRAY_ALPHA_6);
         pre_name.setTextManager(fonts[0]);
         pre_name.setText("Name: ", Colors.BLACK);
 
-        TextBar name = new TextBar(layoutManager, bottom, 0.30f, 0.95f, 0.8f, 0.95f, true);
+        TextBar name = new TextBar(bottom, 0.30f, 0.95f, 0.8f, 0.95f, true);
         name.setColor(Colors.GRAY_ALPHA_6);
         name.setTextManager(fonts[0]);
         name.setText(username, Colors.BLACK);

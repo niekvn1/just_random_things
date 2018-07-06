@@ -3,8 +3,8 @@ package knickknacker.sanderpunten.ActivityTools.Setups;
 import android.content.Context;
 
 import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Properties.Colors;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.Button;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
@@ -37,19 +37,19 @@ public class Popup extends LayoutSetup {
         root.setColor(Colors.BLACK_ALPHA_6);
         root.setzIndex(-0.9f);
 
-        LayoutBox popup = new LayoutBox(layoutManager, root, 0.0f, 1.0f, 0.25f, 0.75f, true);
+        LayoutBox popup = new LayoutBox(root, 0.0f, 1.0f, 0.25f, 0.75f, true);
         popup.setBackgroundTexture(layoutManager.getTextures()[6]);
         popup.setColor(Colors.RED_5_ALPHA_6);
 
-        TextBox textbox = new TextBox(layoutManager, popup, 0.05f, 0.95f, 0.35f, 0.95f, true);
+        TextBox textbox = new TextBox(popup, 0.05f, 0.95f, 0.35f, 0.95f, true);
         textbox.setColor(Colors.TRANS);
         layoutManager.addDirectAccess(textbox, POPUP_TEXT_KEY);
 
-        Button button = new Button(layoutManager, popup, 0.05f, 0.95f, 0.05f, 0.30f, true);
+        Button button = new Button(popup, 0.05f, 0.95f, 0.05f, 0.30f, true);
         button.setColor(Colors.BLACK_ALPHA_6);
         button.setHitColor(Colors.GRAY_ALPHA_6);
 
-        TextBox ok = new TextBox(layoutManager, button, 0.05f, 0.95f, 0.05f, 0.95f, true);
+        TextBox ok = new TextBox(button, 0.05f, 0.95f, 0.05f, 0.95f, true);
         ok.setColor(Colors.TRANS);
         layoutManager.addDirectAccess(ok, POPUP_BUTTON_TEXT_KEY);
 

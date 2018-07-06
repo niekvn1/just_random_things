@@ -4,8 +4,7 @@ import android.content.Context;
 
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 
 public class LayoutSetup {
     protected LayoutManager layoutManager;

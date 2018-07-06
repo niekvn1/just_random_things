@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Properties;
+package knickknacker.opengldrawables.Drawing.Properties;
 
 /**
  * Created by Niek on 22-5-2018.

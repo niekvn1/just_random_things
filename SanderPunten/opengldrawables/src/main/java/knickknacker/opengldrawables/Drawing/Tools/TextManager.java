@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Tools;
+package knickknacker.opengldrawables.Drawing.Tools;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -6,7 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Text;
+import knickknacker.opengldrawables.Drawing.Drawables.Text;
 
 /**
  * Created by Niek on 23-5-2018.

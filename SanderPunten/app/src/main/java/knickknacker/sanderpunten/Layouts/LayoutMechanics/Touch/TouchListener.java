@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 
@@ -18,12 +19,12 @@ public class TouchListener implements View.OnTouchListener {
     public static final byte TOUCH_CANCEL = 3;
 
     private LayoutManager layoutManager;
-    private LayoutBox root;
+    private Layout layout;
     private TouchData data;
 
     public TouchListener(LayoutManager layoutManager) {
         this.layoutManager = layoutManager;
-        root = layoutManager.getRoot();
+        layout = layoutManager.getLayout();
         data = new TouchData();
     }
 
@@ -75,15 +76,13 @@ public class TouchListener implements View.OnTouchListener {
                 break;
         }
 
-        Log.i("ID", data.getPointerIDs()[0] + " " + data.getPointerIDs()[1] + " " + data.getPointerIDs()[2] + " " + data.getPointerIDs()[3] + " " + data.getPointerIDs()[4] + " ");
-
         this.data.setIdOfInterest(pointerID);
-        root.onTouchEvent(this.data);
+        layout.onTouch(this.data);
         return true;
     }
 
-    public void setRoot(LayoutBox root) {
-        this.root = root;
+    public void setLayout(Layout layout) {
+        this.layout = layout;
     }
 
     public class TouchData {

@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Tools;
+package knickknacker.opengldrawables.Drawing.Tools;
 
 import android.app.Activity;
 import android.content.res.Configuration;
@@ -6,10 +6,9 @@ import android.opengl.GLSurfaceView;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.ViewTreeObserver;
 
-import knickknacker.sanderpunten.Input.Keyboard;
-import knickknacker.sanderpunten.Input.KeyboardCallback;
+import knickknacker.opengldrawables.Drawing.Input.Keyboard;
+import knickknacker.opengldrawables.Drawing.Input.KeyboardCallback;
 
 
 /**

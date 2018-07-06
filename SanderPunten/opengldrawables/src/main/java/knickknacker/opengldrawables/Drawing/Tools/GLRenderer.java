@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Tools;
+package knickknacker.opengldrawables.Drawing.Tools;
 
 import android.app.Activity;
 import android.opengl.GLES20;
@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Drawable;
-import knickknacker.sanderpunten.Rendering.Drawing.Drawables.Text;
+import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
+import knickknacker.opengldrawables.Drawing.Drawables.Text;
 
 /**
  * Created by Niek on 22-5-2018.

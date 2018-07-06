@@ -1,4 +1,4 @@
-package knickknacker.sanderpunten.Rendering.Drawing.Tools;
+package knickknacker.opengldrawables.Drawing.Tools;
 
 import android.content.Context;
 import android.graphics.Bitmap;

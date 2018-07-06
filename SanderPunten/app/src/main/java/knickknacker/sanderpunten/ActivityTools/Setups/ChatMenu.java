@@ -7,15 +7,14 @@ import knickknacker.sanderpunten.ActivityTools.LayoutSetup;
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.Button;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.FitBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.List;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBar;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBarCallback;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchCallback;
-import knickknacker.sanderpunten.Rendering.Drawing.Properties.Colors;
-import knickknacker.sanderpunten.Rendering.Drawing.Tools.TextManager;
+import knickknacker.opengldrawables.Drawing.Properties.Colors;
+import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 
 public class ChatMenu extends LayoutSetup implements TextBarCallback {
     private ChatMenuCallback callback;
@@ -38,19 +37,19 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
         root.setBackgroundTexture(layoutManager.getTextures()[5]);
         root.setColor(Colors.WHITE);
 
-        chatLog = new List(layoutManager, root, 0.05f, 0.95f, 0.20f, 0.45f, true);
+        chatLog = new List(root, 0.05f, 0.95f, 0.20f, 0.95f, true);
         chatLog.setColor(Colors.WHITE_ALPHA_6);
         chatLog.setMargin(20);
 
-        LayoutBox chatBar = new LayoutBox(layoutManager, root, 0.05f, 0.95f, 0.05f, 0.15f, true);
+        LayoutBox chatBar = new LayoutBox(root, 0.05f, 0.95f, 0.05f, 0.15f, true);
         chatBar.setColor(Colors.WHITE_ALPHA_6);
 
-        insert = new TextBar(layoutManager, chatBar, 0.05f, 0.80f, 0.05f, 0.95f, true);
+        insert = new TextBar(chatBar, 0.05f, 0.80f, 0.05f, 0.95f, true);
         insert.setColor(Colors.GRAY_ALPHA_6);
         insert.setTextManager(fonts[0]);
         insert.setCallback(this);
 
-        Button send = new Button(layoutManager, chatBar, 0.85f, 0.95f, 0.05f, 0.95f, true);
+        Button send = new Button(chatBar, 0.85f, 0.95f, 0.05f, 0.95f, true);
         send.setColor(Colors.WHITE);
         send.setBackgroundTexture(layoutManager.getTextures()[7]);
         send.setHitColor(Colors.WHITE_ALPHA_6);
@@ -60,6 +59,13 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
                 onTextCommitted(insert);
             }
         });
+
+        for (int i = 1; i < 101; i++) {
+            TextBox entry = new TextBox(chatLog, 500f, 100, false);
+            entry.setTextManager(fonts[0]);
+            entry.setColor(Colors.GRAY_ALPHA_6);
+            entry.setText("test " + i);
+        }
     }
 
     @Override
@@ -71,7 +77,7 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
     }
 
     public void onChatReceive(String msg) {
-        TextBox entry = new TextBox(layoutManager, chatLog, chatLog.getWidth() * 0.9f, 100, false);
+        TextBox entry = new TextBox(chatLog, chatLog.getWidth() * 0.9f, 100, false);
         entry.setTextManager(fonts[0]);
         entry.setColor(Colors.GRAY_ALPHA_6);
         entry.setText(msg);

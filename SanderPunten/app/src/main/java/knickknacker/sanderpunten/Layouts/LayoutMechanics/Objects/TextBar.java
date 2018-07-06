@@ -3,7 +3,8 @@ package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import knickknacker.sanderpunten.Input.KeyboardCallback;
+import knickknacker.opengldrawables.Drawing.Input.KeyboardCallback;
+import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
 
@@ -15,16 +16,20 @@ public class TextBar extends TextBox implements KeyboardCallback {
     private TextBarCallback callback;
     private boolean showing = false;
 
-    public TextBar(LayoutManager manager, LayoutBox parent) {
-        super(manager, parent);
+    public TextBar(Layout layout) {
+        super(layout);
     }
 
-    public TextBar(LayoutManager manager, LayoutBox parent, float width, float height, boolean relative) {
-        this(manager, parent, 0f, width , 0f, height, relative);
+    public TextBar(LayoutBox parent) {
+        super(parent);
     }
 
-    public TextBar(LayoutManager manager, LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
-        super(manager, parent, left, right, bottom, top, relative);
+    public TextBar(LayoutBox parent, float width, float height, boolean relative) {
+        this(parent, 0f, width , 0f, height, relative);
+    }
+
+    public TextBar(LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
+        super(parent, left, right, bottom, top, relative);
     }
 
     @Override
@@ -44,7 +49,8 @@ public class TextBar extends TextBox implements KeyboardCallback {
 
     private void showKeyboard() {
         showing = true;
-        manager.setTouchListenerRoot(this);
+        LayoutManager manager = layout.getManager();
+        layout.setTouchRoot(this);
         manager.getView().setKeyboardCallback(this);
         manager.getView().showKeyboard(true);
     }
@@ -77,6 +83,7 @@ public class TextBar extends TextBox implements KeyboardCallback {
     }
 
     public void onToggle(float width, float defaultWidth, float height, float defaultHeight) {
+        LayoutManager manager = layout.getManager();
         float transY = bottom - 50 * manager.getUnit();
         if (transY > defaultHeight - height) {
             manager.forceProjection(manager.getWorldWidth() * (width / defaultWidth), manager.getWorldHeight() * (height / defaultHeight), 0, -(defaultHeight - height));
@@ -111,8 +118,9 @@ public class TextBar extends TextBox implements KeyboardCallback {
     }
 
     private void cancel() {
+        LayoutManager manager = layout.getManager();
         manager.getView().showKeyboard(false);
-        manager.setTouchListenerRoot(manager.getRoot());
+        layout.setTouchRoot(layout.getRoot());
         showing = false;
     }
 
