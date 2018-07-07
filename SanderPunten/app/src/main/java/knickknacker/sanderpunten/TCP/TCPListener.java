@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.util.ArrayList;
 
 import knickknacker.RSA.RSA;
 import knickknacker.sanderpunten.Services.NetworkService;
@@ -149,6 +150,21 @@ public class TCPListener implements TCPClientUser {
     public void onChatReceive(Object args) {
         if (args instanceof String) {
             callback.call(NetworkServiceProtocol.ON_CHAT_RECEIVE, (String) args);
+        }
+    }
+
+    public void onGetUsers(Object args) {
+        if (args instanceof Signable) {
+            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_GET_USERS, (Signable) args);
+            if (call != null) {
+                client.sendData(call.encode());
+            }
+        }
+    }
+
+    public void onGetUsersResponse(Object args) {
+        if (args instanceof ArrayList) {
+            callback.call(NetworkServiceProtocol.ON_GET_USERS_RESPONSE, (ArrayList) args);
         }
     }
 

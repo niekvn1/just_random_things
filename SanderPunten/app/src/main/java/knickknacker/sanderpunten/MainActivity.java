@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import knickknacker.sanderpunten.ActivityTools.Setups.ChatMenu;
 import knickknacker.sanderpunten.ActivityTools.Setups.ChatMenuCallback;
@@ -25,6 +26,8 @@ import knickknacker.sanderpunten.ActivityTools.Setups.Popup;
 import knickknacker.sanderpunten.ActivityTools.Setups.MainMenuCallback;
 import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenu;
 import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenuCallback;
+import knickknacker.sanderpunten.ActivityTools.Setups.PuntenManager;
+import knickknacker.sanderpunten.ActivityTools.Setups.PuntenManagerCallback;
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
@@ -33,18 +36,20 @@ import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
 import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.tcp.Signables.Signable;
 import knickknacker.tcp.Signables.SignableString;
 
 import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.*;
 
 public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, MainMenuCallback,
-        ProfileMenuCallback, ChatMenuCallback {
+        ProfileMenuCallback, ChatMenuCallback, PuntenManagerCallback {
     private final byte STATE_MAIN = 0;
     private final byte STATE_PROFILE = 1;
     private final byte STATE_POPUP = 2;
     private final byte STATE_CHAT = 3;
+    private final byte STATE_PUNTEN_MANAGER = 4;
 
-    private final int LAYOUT_COUNT = 4;
+    private final int LAYOUT_COUNT = 5;
 
     public static final String NAME_KEY = "userdata_name";
     public static final String ID_KEY = "userdata_id";
@@ -53,7 +58,8 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     private int[] menuTextureIds = {R.drawable.struissander, R.drawable.sanderstrand,
                                     R.drawable.dumb_sheep, R.drawable.multiple_sheep,
                                     R.drawable.sheep_low, R.drawable.freek,
-                                    R.drawable.error_sheep, R.drawable.send};
+                                    R.drawable.error_sheep, R.drawable.send,
+                                    R.drawable.lammetje};
     private byte menuState = STATE_MAIN;
 
     private boolean mainLoaded = false;
@@ -65,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     private MainMenu mainMenu;
     private ProfileMenu profileMenu;
     private ChatMenu chatMenu;
+    private PuntenManager puntenManager;
     private Popup popup;
 
 
@@ -255,6 +262,23 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         }
     }
 
+    public void puntenManager() {
+        if (menuState == STATE_MAIN) {
+            if (puntenManager == null) {
+                Layout layout = layoutManager.newLayout(STATE_PUNTEN_MANAGER);
+                if (layout != null) {
+                    puntenManager = new PuntenManager(this, layoutManager, layout);
+                    puntenManager.setup();
+                }
+            }
+
+            if (layoutManager != null) {
+                layoutManager.switchLayout(STATE_PUNTEN_MANAGER);
+                menuState = STATE_PUNTEN_MANAGER;
+            }
+        }
+    }
+
     public void onChatSend(String msg) {
         ServiceFunctions.call(rsm, ON_CHAT_SEND, new SignableString(storage.getPublicUserData().getId(), msg));
     }
@@ -263,6 +287,16 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         if (args instanceof String) {
             String msg = (String) args;
             chatMenu.onChatReceive(msg);
+        }
+    }
+
+    public void getUsers() {
+        ServiceFunctions.call(rsm, ON_GET_USERS, new Signable(storage.getPublicUserData().getId()));
+    }
+
+    public void onGetUsersResponse(Object args) {
+        if (args instanceof ArrayList) {
+            puntenManager.setUsers((ArrayList) args);
         }
     }
 
@@ -314,9 +348,8 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
                 super.onBackPressed();
                 break;
             case STATE_PROFILE:
-                mainMenu();
-                break;
             case STATE_CHAT:
+            case STATE_PUNTEN_MANAGER:
                 mainMenu();
                 break;
         }

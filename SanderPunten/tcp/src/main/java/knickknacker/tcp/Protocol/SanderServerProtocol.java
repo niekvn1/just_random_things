@@ -24,6 +24,8 @@ public abstract class SanderServerProtocol {
     public static final String FUNC_NAME_CHANGE_RESPONSE = "onNameChangeResponse";
     public static final String FUNC_CHAT_SEND = "onChatSend";
     public static final String FUNC_CHAT_RECEIVE = "onChatReceive";
+    public static final String FUNC_GET_USERS = "onGetUsers";
+    public static final String FUNC_GET_USERS_RESPONSE = "onGetUsersResponse";
 
     public static byte[] stringResponse(String func, String data) {
         RemoteCall call = new RemoteCall(func, data, null);

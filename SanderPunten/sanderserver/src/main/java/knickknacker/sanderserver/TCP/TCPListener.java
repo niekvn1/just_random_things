@@ -18,6 +18,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import knickknacker.RSA.RSA;
@@ -215,6 +216,10 @@ public class TCPListener implements TCPServerUser {
         }
     }
 
+    private void onGetUsers(Object args, String address, int port) {
+        callWithObject(SanderServerProtocol.FUNC_GET_USERS_RESPONSE, exportPublicUserData(), address, port);
+    }
+
     private void callWithObject(String func, Serializable object, String address, int port) {
         RemoteCall call = new RemoteCall(func, object, null);
         server.sendTo(address, port, call.encode());
@@ -242,6 +247,27 @@ public class TCPListener implements TCPServerUser {
         } else {
             callback.stringDisplay("[Disconnect: " + address + ":" + port + "]");
         }
+    }
+
+    private ArrayList<PublicUserData> exportPublicUserData() {
+        ArrayList<PublicUserData> data = new ArrayList<>();
+        for (int i = 0; i < FIRST_USER_ID; i++) {
+            if (users[i] == null) {
+                break;
+            }
+
+            data.add(users[i].getPublicUserData());
+        }
+
+        for (int i = FIRST_USER_ID; i < MAX_USERS; i++) {
+            if (users[i] == null) {
+                return data;
+            }
+
+            data.add(users[i].getPublicUserData());
+        }
+
+        return data;
     }
 
     private int findUserIdWithIp(String address, int port) {

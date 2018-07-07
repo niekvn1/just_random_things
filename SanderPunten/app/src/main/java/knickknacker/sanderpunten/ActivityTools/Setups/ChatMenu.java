@@ -59,13 +59,6 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
                 onTextCommitted(insert);
             }
         });
-
-        for (int i = 1; i < 101; i++) {
-            TextBox entry = new TextBox(chatLog, 500f, 100, false);
-            entry.setTextManager(fonts[0]);
-            entry.setColor(Colors.GRAY_ALPHA_6);
-            entry.setText("test " + i);
-        }
     }
 
     @Override
@@ -77,7 +70,7 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
     }
 
     public void onChatReceive(String msg) {
-        TextBox entry = new TextBox(chatLog, chatLog.getWidth() * 0.9f, 100, false);
+        TextBox entry = new TextBox(chatLog, chatLog.getWidth() * 0.9f, 400, false);
         entry.setTextManager(fonts[0]);
         entry.setColor(Colors.GRAY_ALPHA_6);
         entry.setText(msg);

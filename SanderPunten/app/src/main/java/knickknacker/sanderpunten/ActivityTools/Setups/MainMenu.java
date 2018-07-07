@@ -71,7 +71,7 @@ public class MainMenu extends LayoutSetup {
         button.setTouchCallback(new TouchCallback() {
             @Override
             public void onTouch(LayoutBox box) {
-                MainMenu.this.callback.userProfile();
+                callback.userProfile();
             }
         });
 
@@ -88,9 +88,26 @@ public class MainMenu extends LayoutSetup {
         button2.setTouchCallback(new TouchCallback() {
             @Override
             public void onTouch(LayoutBox box) {
-                MainMenu.this.callback.chat();
+                callback.chat();
             }
         });
+
+        /** Button 3 */
+        Button button3 = new Button(child);
+        button3.setColor(Colors.WHITE_ALPHA_6);
+        button3.setHitColor(Colors.GREEN_ALPHA_6);
+
+        TextBox punten_manager = new TextBox(button3, 0.1f, 0.9f, 0.66f, 0.95f, true);
+        punten_manager.setTextManager(fonts[0]);
+        punten_manager.setColor(Colors.BLACK_ALPHA_6);
+        punten_manager.setText("Punten Manager");
+        button3.setTouchCallback(new TouchCallback() {
+            @Override
+            public void onTouch(LayoutBox box) {
+                callback.puntenManager();
+            }
+        });
+
     }
 
     public void changeName(String name) {

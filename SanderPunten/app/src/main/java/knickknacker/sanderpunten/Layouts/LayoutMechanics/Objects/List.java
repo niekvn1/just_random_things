@@ -51,7 +51,7 @@ public class List extends LayoutBox implements TouchSubscriber {
         }
 
         super.addChild(box);
-        if (scrollOffset > 0) {
+        if (scrollOffset >= 0) {
             scrollOffset = 0;
             offsetChild = children.size() - 1;
         }
@@ -209,7 +209,7 @@ public class List extends LayoutBox implements TouchSubscriber {
             return;
         }
 
-        diffY = (data.getY() - prev_y) * 1000;
+        diffY = (data.getY() - prev_y) * 2000;
         scroll();
 
         prev_y = data.getY();
