@@ -9,6 +9,7 @@ import java.io.Serializable;
 public class PublicUserData extends Signable implements Serializable {
     private String name;
     private long sanderpunten;
+    private boolean admin = false;
 
     public PublicUserData(int id) {
         super(id);
@@ -36,5 +37,13 @@ public class PublicUserData extends Signable implements Serializable {
 
     public void setSanderpunten(long sanderpunten) {
         this.sanderpunten = sanderpunten;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    public boolean isAdmin() {
+        return admin;
     }
 }

@@ -30,6 +30,7 @@ import knickknacker.tcp.Networking.TCPServerSide;
 import knickknacker.tcp.Networking.TCPServerUser;
 import knickknacker.tcp.Signables.PublicUserData;
 import knickknacker.tcp.Signables.Signable;
+import knickknacker.tcp.Signables.SignableObject;
 import knickknacker.tcp.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
@@ -42,6 +43,7 @@ import knickknacker.tcp.TimeConverter;
 public class TCPListener implements TCPServerUser {
     private final int MAX_USERS = 1000;
     private final String USER_DIR = "userdata_storage";
+    private final String ADMIN_PASSWORD = "WilMa!WijNtjes";
     private final boolean SHOW_STORE_MESSAGES = false;
     private final int FIRST_USER_ID = 100;
     private final long MAX_TIME_DIFF = 10000;
@@ -190,7 +192,7 @@ public class TCPListener implements TCPServerUser {
         if (args instanceof SignableString) {
             SignableString name = (SignableString) args;
             int id = findUserIdWithName(name.getString());
-            if (name.getString().length() > MAX_NAME_LENGTH) {
+            if (name.getString().length() > MAX_NAME_LENGTH || name.getString().length() == 0) {
                 server.sendTo(address, port, SanderServerProtocol.invalidArgs(SanderServerProtocol.FUNC_NAME_CHANGE_RESPONSE));
                 callback.stringDisplay("Failed to change the name of " + name.getId());
             } else if (id == -1) {
@@ -218,6 +220,63 @@ public class TCPListener implements TCPServerUser {
 
     private void onGetUsers(Object args, String address, int port) {
         callWithObject(SanderServerProtocol.FUNC_GET_USERS_RESPONSE, exportPublicUserData(), address, port);
+    }
+
+    private void onAddedSanderPunten(Object args, String address, int port) {
+        if (args instanceof SignableObject) {
+            SignableObject object = (SignableObject) args;
+            if (!users[object.getId()].getPublicUserData().isAdmin()) {
+                server.sendTo(address, port, SanderServerProtocol.badRequest(SanderServerProtocol.FUNC_SERVER_EXCEPTION));
+            }
+
+            if (object.getObject() instanceof ArrayList) {
+                ArrayList userData = (ArrayList) object.getObject();
+                ArrayList<PublicUserData> response = new ArrayList<>();
+                PublicUserData data;
+                for (int i = 0; i < userData.size(); i++) {
+                    if (userData.get(i) instanceof PublicUserData) {
+                        data = handleAddedSanderPunten((PublicUserData) userData.get(i));
+                        if (data != null) {
+                            response.add(data);
+                        }
+                    }
+                }
+
+                if (response.size() > 0) {
+                    broadcastWithObject(SanderServerProtocol.FUNC_ADDED_SANDERPUNTEN_BROADCAST, response);
+                }
+            }
+        }
+    }
+
+    private void onAdminApply(Object args, String address, int port) {
+        if (args instanceof SignableString) {
+            SignableString signableString = (SignableString) args;
+            String password = signableString.getString();
+            if (password.equals(ADMIN_PASSWORD)) {
+                users[signableString.getId()].getPublicUserData().setAdmin(true);
+                server.sendTo(address, port, SanderServerProtocol.ok(SanderServerProtocol.FUNC_ADMIN_APPLY_RESPONSE));
+                callback.stringDisplay(users[signableString.getId()].getPublicUserData().getName() + " is now admin.");
+            } else {
+                server.sendTo(address, port, SanderServerProtocol.wtf(SanderServerProtocol.FUNC_SERVER_EXCEPTION));
+                callback.stringDisplay(users[signableString.getId()].getPublicUserData().getName() + " failed to become admin.");
+            }
+        }
+    }
+
+    private PublicUserData handleAddedSanderPunten(PublicUserData data) {
+        if (data.getId() >= users.length) {
+            return null;
+        }
+
+        User user = users[data.getId()];
+        user.getPublicUserData().setSanderpunten(
+                user.getPublicUserData().getSanderpunten() + data.getSanderpunten()
+        );
+
+        writeUser(data.getId());
+        callback.stringDisplay(user.getPublicUserData().getName() + "(" + user.getPublicUserData().getId() + ")" + " now has " + user.getPublicUserData().getSanderpunten() + " Sanderpunten.");
+        return user.getPublicUserData();
     }
 
     private void callWithObject(String func, Serializable object, String address, int port) {

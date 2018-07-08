@@ -26,6 +26,10 @@ public abstract class SanderServerProtocol {
     public static final String FUNC_CHAT_RECEIVE = "onChatReceive";
     public static final String FUNC_GET_USERS = "onGetUsers";
     public static final String FUNC_GET_USERS_RESPONSE = "onGetUsersResponse";
+    public static final String FUNC_ADDED_SANDERPUNTEN = "onAddedSanderPunten";
+    public static final String FUNC_ADDED_SANDERPUNTEN_BROADCAST = "onAddedSanderPuntenBroadcast";
+    public static final String FUNC_ADMIN_APPLY = "onAdminApply";
+    public static final String FUNC_ADMIN_APPLY_RESPONSE = "onAdminApplyResponse";
 
     public static byte[] stringResponse(String func, String data) {
         RemoteCall call = new RemoteCall(func, data, null);

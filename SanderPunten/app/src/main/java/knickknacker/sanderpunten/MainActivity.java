@@ -37,6 +37,7 @@ import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
 import knickknacker.tcp.Signables.PublicUserData;
 import knickknacker.tcp.Signables.Signable;
+import knickknacker.tcp.Signables.SignableObject;
 import knickknacker.tcp.Signables.SignableString;
 
 import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.*;
@@ -53,13 +54,15 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
 
     public static final String NAME_KEY = "userdata_name";
     public static final String ID_KEY = "userdata_id";
+    public static final String PUNTEN_KEY = "userdata_punten";
 
     private LayoutManager layoutManager;
     private int[] menuTextureIds = {R.drawable.struissander, R.drawable.sanderstrand,
                                     R.drawable.dumb_sheep, R.drawable.multiple_sheep,
                                     R.drawable.sheep_low, R.drawable.freek,
                                     R.drawable.error_sheep, R.drawable.send,
-                                    R.drawable.lammetje};
+                                    R.drawable.lammetje, R.drawable.plus_button,
+                                    R.drawable.minus_button};
     private byte menuState = STATE_MAIN;
 
     private boolean mainLoaded = false;
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
 
     public void call(String func, Object args) {
         try {
+            Log.i("Calling", func);
             Method method = MainActivity.class.getDeclaredMethod(func, Object.class);
             method.invoke(this, args);
         } catch (NoSuchMethodException e) {
@@ -200,6 +204,17 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         }
     }
 
+    public void adminApply(String password) {
+        ServiceFunctions.call(rsm, ON_ADMIN_APPLY, new SignableString(storage.getPublicUserData().getId(), password));
+    }
+
+    public void onAdminApplyResponse(Object args) {
+        storage.getPublicUserData().setAdmin(true);
+        saveUserData();
+
+        profileMenu.onAdminApplyResponse();
+    }
+
     private void onStatusError(Object args) {
         if (args instanceof String) {
             popup((String) args);
@@ -218,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     private void popup(String text) {
-        Log.i("POPUP", "creating popup.");
         if (popup == null) {
             popup = new Popup(this, layoutManager, STATE_POPUP);
             popup.setup();
@@ -234,7 +248,10 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
                 Layout layout = layoutManager.newLayout(STATE_PROFILE);
                 if (layout != null) {
                     profileMenu = new ProfileMenu(this, layoutManager, layout);
-                    profileMenu.setup(storage.getPublicUserData().getName());
+                    profileMenu.setup(storage.getPublicUserData().getName(),
+                                      storage.getPublicUserData().getId(),
+                                      storage.getPublicUserData().isAdmin(),
+                                      storage.getPublicUserData().getSanderpunten());
                 }
             }
 
@@ -267,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
             if (puntenManager == null) {
                 Layout layout = layoutManager.newLayout(STATE_PUNTEN_MANAGER);
                 if (layout != null) {
-                    puntenManager = new PuntenManager(this, layoutManager, layout);
+                    puntenManager = new PuntenManager(this, layoutManager, layout, storage.getPublicUserData().getId());
                     puntenManager.setup();
                 }
             }
@@ -300,6 +317,28 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         }
     }
 
+    public void addedSanderPunten(ArrayList<PublicUserData> data) {
+        ServiceFunctions.call(rsm, ON_ADDED_SANDERPUNTEN, new SignableObject(storage.getPublicUserData().getId(), data));
+    }
+
+    public void onAddedSanderPuntenBroadcast(Object args) {
+        if (args instanceof ArrayList) {
+            if (puntenManager != null) {
+                puntenManager.setUsers((ArrayList) args);
+            }
+        }
+    }
+
+    public void addedSanderPuntenMe(long punten) {
+        if (profileMenu != null) {
+            profileMenu.changePunten(punten);
+        }
+
+        mainMenu.changePunten(punten);
+        storage.getPublicUserData().setSanderpunten(punten);
+        saveUserData();
+    }
+
     private void mainMenu() {
         if (menuState != STATE_MAIN) {
             if (mainLoaded) {
@@ -321,6 +360,8 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
             publicUserData.setName(settings.getString(NAME_KEY, null));
         }
 
+        publicUserData.setSanderpunten(settings.getLong(PUNTEN_KEY, 0));
+
         System.out.println("Loaded: " + publicUserData.getName() + " " + publicUserData.getId());
     }
 
@@ -335,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
 
         editor.putInt(ID_KEY, storage.getPublicUserData().getId());
         editor.putString(NAME_KEY, storage.getPublicUserData().getName());
-
+        editor.putLong(PUNTEN_KEY, storage.getPublicUserData().getSanderpunten());
         editor.apply();
 
         System.out.println("Saved: " + storage.getPublicUserData().getName() + " " + storage.getPublicUserData().getId());

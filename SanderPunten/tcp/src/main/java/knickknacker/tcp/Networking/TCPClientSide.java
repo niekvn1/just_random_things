@@ -149,7 +149,7 @@ public class TCPClientSide {
     /** Runnable class to receive data from the server. */
     private class Receiver implements Runnable {
         public void run() {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[10192];
             int read;
             Message msg;
             Bundle bundle;

@@ -20,8 +20,7 @@ import knickknacker.tcp.Networking.ConcurrentList;
 public class LayoutBox {
     protected LayoutBox parent;
     protected float left, right, bottom, top;
-    protected float rLeft, rRight, rBottom, rTop;
-    protected float width, height;
+    protected float inLeft, inRight, inBottom, inTop;
     protected ConcurrentList<LayoutBox> children = new ConcurrentList<>();
     protected float[] transformMatrix = null;
     protected int backgroundTexture = -1;
@@ -55,22 +54,12 @@ public class LayoutBox {
 
     public LayoutBox(LayoutBox parent, float left, float right, float bottom, float top, boolean relative) {
         this.parent = parent;
-
         this.relative = relative;
-        if (!relative) {
-            this.left = left;
-            this.right = right;
-            this.bottom = bottom;
-            this.top = top;
-        } else {
-            this.rLeft = left;
-            this.rRight = right;
-            this.rBottom = bottom;
-            this.rTop = top;
-        }
 
-        this.width = this.right - this.left;
-        this.height = this.top - this.bottom;
+        this.inLeft = left;
+        this.inRight = right;
+        this.inBottom = bottom;
+        this.inTop = top;
 
         if (parent != null) {
             layout = parent.getLayout();
@@ -101,14 +90,16 @@ public class LayoutBox {
                 float pleft = parent.getLeft();
                 float pbottom = parent.getBottom();
 
-                left = pleft + rLeft * pwidth;
-                right = pleft + rRight * pwidth;
-                bottom = pbottom + rBottom * pheight;
-                top = pbottom + rTop * pheight;
+                left = pleft + inLeft * pwidth;
+                right = pleft + inRight * pwidth;
+                bottom = pbottom + inBottom * pheight;
+                top = pbottom + inTop * pheight;
+            } else {
+                this.left = inLeft * layout.getManager().getUnit();
+                this.right = inRight * layout.getManager().getUnit();
+                this.bottom = inBottom * layout.getManager().getUnit();
+                this.top = inTop * layout.getManager().getUnit();
             }
-
-            this.width = this.right - this.left;
-            this.height = this.top - this.bottom;
         }
     }
 
@@ -128,10 +119,10 @@ public class LayoutBox {
 
     public void init(float left, float right, float bottom, float top) {
         if (!ignore) {
-            this.left = left;
-            this.right = right;
-            this.bottom = bottom;
-            this.top = top;
+            this.inLeft = left;
+            this.inRight = right;
+            this.inBottom = bottom;
+            this.inTop = top;
             init();
         }
     }
@@ -291,14 +282,6 @@ public class LayoutBox {
         this.backgroundTexture = backgroundTexture;
     }
 
-    public float getWidth() {
-        return width;
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
     public float[] getCorners() {
         return new float[] {left, right, bottom, top};
     }
@@ -313,6 +296,9 @@ public class LayoutBox {
 
     public void setColor(float[] color) {
         this.color = color;
+        if (drawable != null) {
+            drawable.editColor(color);
+        }
     }
 
     public float getLeft() {
@@ -329,6 +315,62 @@ public class LayoutBox {
 
     public float getTop() {
         return top;
+    }
+
+    public float getWidth() {
+        return right - left;
+    }
+
+    public float getHeight() {
+        return top - bottom;
+    }
+
+    public float getInLeft() {
+        return inLeft;
+    }
+
+    public float getInRight() {
+        return inRight;
+    }
+
+    public float getInBottom() {
+        return inBottom;
+    }
+
+    public float getInTop() {
+        return inTop;
+    }
+
+    public float getInWidth() {
+        return inRight - inLeft;
+    }
+
+    public float getUnitLeft() {
+        return left / layout.getManager().getUnit();
+    }
+
+    public float getUnitRight() {
+        return right / layout.getManager().getUnit();
+    }
+
+    public float getUnitBottom() {
+        return bottom / layout.getManager().getUnit();
+    }
+
+    public float getUnitTop() {
+        return top / layout.getManager().getUnit();
+    }
+
+    public float getUnitWidth() {
+        return (right - left) / layout.getManager().getUnit();
+    }
+
+    public float getUnitHeight() {
+        return (top - bottom) / layout.getManager().getUnit();
+    }
+
+    public float getInHeight() {
+        return inTop - inBottom;
     }
 
     public void setRelative(boolean relative) {

@@ -1,5 +1,7 @@
 package knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects;
 
+import android.util.Log;
+
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 
@@ -52,15 +54,16 @@ public class FitBox extends LayoutBox {
     }
 
     public void exactFit() {
-        float margin = layout.getManager().getUnit() * childMargin;
-        float button_height = (height - (childCount - 1) * margin) / childCount;
+        float margin = childMargin;
+        float button_height = (getUnitHeight() - (childCount - 1) * margin) / childCount;
+        Log.i("Height", ""+ button_height);
         for (int i = 0; i < childCount; i++) {
             float[] corners = new float[4];
 //                left, right, bottom, top
-            corners[0] = left;
-            corners[1] = right;
-            corners[2] = top - i * margin - (i + 1) * button_height;
-            corners[3] = top - i * margin - i * button_height;
+            corners[0] = getUnitLeft();
+            corners[1] = getUnitRight();
+            corners[2] = getUnitTop() - i * margin - (i + 1) * button_height;
+            corners[3] = getUnitTop() - i * margin - i * button_height;
 
             initChild(i, corners);
         }

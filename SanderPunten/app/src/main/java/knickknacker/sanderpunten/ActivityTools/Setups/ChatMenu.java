@@ -70,11 +70,10 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
     }
 
     public void onChatReceive(String msg) {
-        TextBox entry = new TextBox(chatLog, chatLog.getWidth() * 0.9f, 400, false);
+        TextBox entry = new TextBox(chatLog, 850, 200, false);
         entry.setTextManager(fonts[0]);
         entry.setColor(Colors.GRAY_ALPHA_6);
         entry.setText(msg);
-        Log.i("CHATMENU", "size: " + chatLog.getChildCount());
         layoutManager.reload(layout);
     }
 }

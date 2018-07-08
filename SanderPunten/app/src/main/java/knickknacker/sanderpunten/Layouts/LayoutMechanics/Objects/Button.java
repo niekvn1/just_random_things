@@ -33,7 +33,6 @@ public class Button extends LayoutBox {
     @Override
     public void onTouchDown(TouchData data) {
         down = true;
-        Log.i("BUTTON", "onTouchDown");
         if (drawable != null) {
             drawable.editColor(hitColor);
         }
@@ -43,7 +42,6 @@ public class Button extends LayoutBox {
 
     @Override
     public void onTouchUp(TouchData data) {
-        Log.i("BUTTON", "onTouchUp");
         down = false;
         drawable.editColor(color);
         super.onTouchUp(data);

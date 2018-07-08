@@ -64,10 +64,11 @@ public class TextBox extends LayoutBox {
     }
 
     private void editText() {
-        Text newText = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
+        Text newText = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, getWidth(), getHeight(), stayInsideBox, breakOnSpace);
         if (newText != null) {
             textDraw.editPoints(newText.getPoints());
             textDraw.editTexels(newText.getTexcoords());
+            textDraw.editColor(textColor);
             textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
         } else {
             textDraw.setReady(false);
@@ -82,7 +83,7 @@ public class TextBox extends LayoutBox {
         }
 
         if (textDraw == null) {
-            textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, width, height, stayInsideBox, breakOnSpace);
+            textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, getWidth(), getHeight(), stayInsideBox, breakOnSpace);
             if (textDraw != null) {
                 textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
                 textDraw .setReady(true);

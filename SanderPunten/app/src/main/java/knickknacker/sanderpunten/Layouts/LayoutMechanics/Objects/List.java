@@ -14,11 +14,9 @@ public class List extends LayoutBox implements TouchSubscriber {
     private int childCount = 0;
     private float totalChildHeight = 0f;
     private boolean center = true;
-    private boolean scrollOnNewChild = true;
     private float margin = 0f;
     private float prev_y = -1f;
     private int offsetChild = -1;
-    private int offsetChildHeightHidden = -1;
     private float scrollOffset = 0;
     private float diffY;
     private boolean atTop;
@@ -57,7 +55,7 @@ public class List extends LayoutBox implements TouchSubscriber {
         }
 
         childCount++;
-        totalChildHeight += box.getHeight();
+        totalChildHeight += box.getInHeight();
 
         box.setIgnore(true);
     }
@@ -67,8 +65,7 @@ public class List extends LayoutBox implements TouchSubscriber {
         super.init();
         if (offsetChild == -1) {
             offsetChild = children.size() - 1;
-            offsetChildHeightHidden = 0;
-            if (totalChildHeight + childCount * margin > height) {
+            if (totalChildHeight + childCount * margin > getUnitHeight()) {
                 atTop = false;
                 atBottom = true;
             } else {
@@ -81,11 +78,11 @@ public class List extends LayoutBox implements TouchSubscriber {
     }
 
     private void getChildCorners(float[] corners, float offset, LayoutBox box, boolean bottomUp) {
-        float boxWidth = box.getWidth();
-        float boxHeight = box.getHeight();
+        float boxWidth = box.getInWidth();
+        float boxHeight = box.getInHeight();
         if (center) {
-            corners[0] = left + (width - boxWidth) / 2;
-            corners[1] = right - (width - boxWidth) / 2;
+            corners[0] = getUnitLeft() + (getUnitWidth() - boxWidth) / 2;
+            corners[1] = getUnitRight() - (getUnitWidth() - boxWidth) / 2;
         }
 
         if (bottomUp) {
@@ -102,11 +99,11 @@ public class List extends LayoutBox implements TouchSubscriber {
     private void topDown() {
 //        Log.i("List", "TopDown");
         float[] corners = new float[4];
-        float offset = top;
+        float offset = getUnitTop();
         for (LayoutBox box : children.getCopy()) {
             getChildCorners(corners, offset, box, false);
 
-            if (corners[2] < bottom) {
+            if (corners[2] < getUnitBottom()) {
                 offset = corners[2];
                 box.setIgnore(false);
                 box.initAll(corners[0], corners[1], corners[2], corners[3]);
@@ -121,7 +118,7 @@ public class List extends LayoutBox implements TouchSubscriber {
     private void bottomUp() {
 //        Log.i("BUG", "BottomUp begin");
         float[] corners = new float[4];
-        float offset = bottom + scrollOffset;
+        float offset = getUnitBottom() + scrollOffset;
         ArrayList<LayoutBox> copy = children.getCopy();
         LayoutBox box;
         boolean full = false;
@@ -135,20 +132,20 @@ public class List extends LayoutBox implements TouchSubscriber {
 
             getChildCorners(corners, offset, box, true);
 
-            if (i == 0 && corners[3] < top) {
+            if (i == 0 && corners[3] < getUnitTop()) {
                 atTop = true;
             } else if (atTop) {
                 atTop = false;
             }
 
-            if (i == offsetChild && diffY < 0 && corners[3] < bottom && !box.isIgnore()) {
+            if (i == offsetChild && diffY < 0 && corners[3] < getUnitBottom() && !box.isIgnore()) {
                 layout.getManager().toIgnore(box);
                 offsetChild -= 1;
-                offset = bottom + diffY;
+                offset = getUnitBottom() + diffY;
                 scrollOffset = 0;
-            } else if (i == offsetChild && diffY > 0 && i + 1 < copy.size() && copy.get(i + 1).isIgnore() && corners[2] > bottom + margin) {
+            } else if (i == offsetChild && diffY > 0 && i + 1 < copy.size() && copy.get(i + 1).isIgnore() && corners[2] > getUnitBottom() + margin) {
                 offsetChild += 1;
-                scrollOffset -= (copy.get(offsetChild).getHeight() + margin);
+                scrollOffset -= (copy.get(offsetChild).getInHeight() + margin);
                 offset = load(box, corners);
             } else if (full && !box.isIgnore()) {
 //                Log.i("LIST", "top ignore");
@@ -156,7 +153,7 @@ public class List extends LayoutBox implements TouchSubscriber {
             } else if (full && box.isIgnore()) {
 //                Log.i("LIST", "return at " + i);
                 return;
-            } else if (corners[3] > top) {
+            } else if (corners[3] > getUnitTop()) {
 //                Log.i("LIST", "set full");
                 full = true;
                 offset = load(box, corners);
@@ -175,7 +172,7 @@ public class List extends LayoutBox implements TouchSubscriber {
     }
 
     private void scroll() {
-        if (totalChildHeight + childCount * margin > height && !(atTop && diffY < 0)) {
+        if (totalChildHeight + childCount * margin > getUnitHeight() && !(atTop && diffY < 0)) {
 //            Log.i("DiffY", "" + diffY + " offset: " + scrollOffset + " child: " + offsetChild);
             scrollOffset += diffY;
             layout.reload();
@@ -216,7 +213,7 @@ public class List extends LayoutBox implements TouchSubscriber {
     }
 
     private void handle_children() {
-        if (totalChildHeight + childCount * margin > height) {
+        if (totalChildHeight + childCount * margin > getUnitHeight()) {
             bottomUp();
         } else {
             topDown();

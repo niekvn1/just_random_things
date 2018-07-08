@@ -174,10 +174,6 @@ public class LayoutManager implements GLRenderCallback {
         totalTransY = trans[1];
 
         Log.i("setScaleAndTrans", "width: " + this.width + " height: " + this.height + " scale0: " + scale[0] + " scale1: " + scale[1]);
-        Log.i("TEST1", (worldWidth * scale[0]) + " " + (worldHeight * scale[1]));
-//        LayoutBox root = layouts[using].getRoot();
-//        Log.i("TEST2", "Left: " + root.getLeft() / scaleY + " Bottom: " + root.getBottom() / scaleY +  " Width: " + root.getWidth() / scaleX + " Height: " + root.getHeight() / scaleY);
-        Log.i("TEST2", "Left: " + (0 + totalTransX) * scaleY + " Bottom: " + (0 + totalTransY) * scaleY +  " Width: " + (540 + totalTransX) * scaleX + " Height: " + (462 + totalTransY) * scaleY);
 
 
 
@@ -231,25 +227,33 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     private void loadBoxes() {
-        for (LayoutBox box : loadBoxes.getCopy()) {
-            for (Drawable d: box.toDrawable(drawEdges)) {
-                renderer.newDrawable(d);
-                renderer.initDrawable(d);
+        while (loadBoxes.size() > 0) {
+            for (LayoutBox box : loadBoxes.getCopy()) {
+                for (Drawable d: box.toDrawable(drawEdges)) {
+                    renderer.newDrawable(d);
+                    renderer.initDrawable(d);
+                }
+
+                loadBoxes.remove(box);
             }
         }
 
-        loadBoxes.clear();
+//        loadBoxes.clear();
         interrupt.unset(INTERRUPT_LOAD_BOXES);
     }
 
     private void ignore() {
-        for (LayoutBox box : toIgnore.getCopy()) {
-            for (Drawable d : box.fetchDrawables()) {
-                renderer.removeDrawable(d);
+        while (toIgnore.size() > 0) {
+            for (LayoutBox box : toIgnore.getCopy()) {
+                for (Drawable d : box.fetchDrawables()) {
+                    renderer.removeDrawable(d);
+                }
+
+                toIgnore.remove(box);
             }
         }
 
-        toIgnore.clear();
+//        toIgnore.clear();
         interrupt.unset(INTERRUPT_IGNORE);
     }
 
@@ -259,7 +263,7 @@ public class LayoutManager implements GLRenderCallback {
             resolutionSet = true;
             unit = worldWidth > worldHeight ? (float) worldHeight / 1000 : (float) worldWidth / 1000;
             loadFonts();
-            layout.init(worldWidth, worldHeight);
+            layout.init(worldWidth / unit, worldHeight / unit);
             layout.initDrawables();
             renderer.setDrawables(layout.getDrawables());
             renderer.initDrawables(layout.getDrawables());
@@ -268,7 +272,7 @@ public class LayoutManager implements GLRenderCallback {
         } else {
             for (Layout l : layouts) {
                 if (l != null && l.isUsed()) {
-                    l.init(worldWidth, worldHeight);
+                    l.init(worldWidth / unit, worldHeight / unit);
                     l.initDrawables();
                 }
             }
@@ -276,18 +280,22 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     private void loadFonts() {
-        for (TextManager font : fontLoad.getCopy()) {
-            font.load(unit);
-            Log.i("FONT LOADER", "" + font.getSize());
+        while (fontLoad.size() > 0) {
+            for (TextManager font : fontLoad.getCopy()) {
+                font.load(unit);
+                Log.i("FONT LOADER", "" + font.getSize());
+
+                fontLoad.remove(font);
+            }
         }
 
-        fontLoad.clear();
+//        fontLoad.clear();
         interrupt.unset(INTERRUPT_FONT_LOADER);
     }
 
     private void change() {
         Layout layout = layouts[using];
-        layout.init(worldWidth, worldHeight);
+        layout.init(worldWidth / unit, worldHeight / unit);
         layout.initDrawables();
         Log.i("MANAGER", "CHANGE");
         renderer.setDrawables(layout.getDrawables());
@@ -300,50 +308,64 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     private void layoutLoaded() {
-        for (Layout l : needLoad.getCopy()) {
-            l.init(worldWidth, worldHeight);
-            l.initDrawables();
+        while (needLoad.size() > 0) {
+            for (Layout l : needLoad.getCopy()) {
+                l.init(worldWidth / unit, worldHeight / unit);
+                l.initDrawables();
 
-            if (!l.isDrawInitialized()) {
-                for (Drawable d : l.getDrawables()) {
-                    renderer.newDrawable(d);
-                    renderer.initDrawable(d);
+                if (!l.isDrawInitialized()) {
+                    for (Drawable d : l.getDrawables()) {
+                        renderer.newDrawable(d);
+                        renderer.initDrawable(d);
+                    }
                 }
+
+                needLoad.remove(l);
             }
         }
 
-        needLoad.clear();
+//        needLoad.clear();
         interrupt.unset(INTERRUPT_LAYOUT_LOADED);
     }
 
     private void layoutUnload() {
-        for (Layout l : needUnload.getCopy()) {
-            for (Drawable d : l.getDrawables()) {
-                renderer.removeDrawable(d);
+        while (needUnload.size() > 0) {
+            for (Layout l : needUnload.getCopy()) {
+                for (Drawable d : l.getDrawables()) {
+                    renderer.removeDrawable(d);
+                }
+
+                needUnload.remove(l);
             }
         }
 
+//        needUnload.clear();
         interrupt.unset(INTERRUPT_LAYOUT_UNLOAD);
     }
 
     private void layoutReload() {
-        for (Layout l : needReload.getCopy()) {
-            l.init(worldWidth, worldHeight);
-            ArrayList<Drawable> newDrawables = l.initDrawables(false);
-            for (Drawable d : newDrawables) {
-                renderer.newDrawable(d);
-                renderer.initDrawable(d);
+        while (needReload.size() > 0) {
+            for (Layout l : needReload.getCopy()) {
+                Log.i("RELOAD LAYOUT", "" + l);
+                l.init(worldWidth / unit, worldHeight / unit);
+                ArrayList<Drawable> newDrawables = l.initDrawables(false);
+                for (Drawable d : newDrawables) {
+                    renderer.newDrawable(d);
+                    renderer.initDrawable(d);
+                }
+
+                needReload.remove(l);
             }
         }
 
-        needReload.clear();
+//        needReload.clear();
         interrupt.unset(INTERRUPT_LAYOUT_RELOAD);
     }
 
     private void newProjection() {
         for (Layout l : layouts) {
             if (l != null && l.isUsed()) {
-                l.init(worldWidth, worldHeight);
+                l.init(worldWidth / unit, worldHeight / unit);
                 l.initDrawables();
             }
         }

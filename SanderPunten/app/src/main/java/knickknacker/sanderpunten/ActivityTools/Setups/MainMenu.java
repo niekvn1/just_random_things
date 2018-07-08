@@ -15,6 +15,7 @@ import knickknacker.opengldrawables.Drawing.Tools.TextManager;
 
 public class MainMenu extends LayoutSetup {
     private final String TEXTBOX_NAME = "textview_name";
+    private TextBox punten;
     private MainMenuCallback callback;
 
     public MainMenu(MainMenuCallback callback, LayoutManager layoutManager, Layout layout) {
@@ -63,7 +64,7 @@ public class MainMenu extends LayoutSetup {
         pre_punten.setColor(Colors.GRAY_ALPHA_6);
         pre_punten.setText("S-punten:", Colors.WHITE);
 
-        TextBox punten = new TextBox(button, 0.5f, 0.9f, 0.1f, 0.3f, true);
+        punten = new TextBox(button, 0.5f, 0.9f, 0.1f, 0.3f, true);
         punten.setTextManager(fonts[0]);
         punten.setColor(Colors.GRAY_ALPHA_6);
         punten.setText(String.valueOf(sanderpunten), Colors.WHITE);
@@ -113,5 +114,9 @@ public class MainMenu extends LayoutSetup {
     public void changeName(String name) {
         TextBox namebox = (TextBox) layoutManager.getDirectAccess(TEXTBOX_NAME);
         namebox.setText(name);
+    }
+
+    public void changePunten(long punten) {
+        this.punten.setText("" + punten);
     }
 }

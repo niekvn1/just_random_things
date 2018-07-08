@@ -3,6 +3,7 @@ package knickknacker.tcp.Networking;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -185,7 +186,7 @@ public class TCPServerSide {
 
         @Override
         public void run() {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[10192];
             int read;
             Message msg;
             Bundle bundle;
@@ -237,6 +238,7 @@ public class TCPServerSide {
                 try {
                     OutputStream out = socketHolder.getSocket().getOutputStream();
                     DataOutputStream writer = new DataOutputStream(out);
+                    Log.i("TCPServerSide", "Sending " + data.length + " bytes.");
                     writer.write(data, 0, data.length);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -262,6 +264,7 @@ public class TCPServerSide {
                     try {
                         OutputStream out = socketHolder.getSocket().getOutputStream();
                         DataOutputStream writer = new DataOutputStream(out);
+                        Log.i("TCPServerSide", "Broadcasting " + data.length + " bytes.");
                         writer.write(data, 0, data.length);
                     } catch (IOException e) {
                         e.printStackTrace();

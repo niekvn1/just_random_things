@@ -24,6 +24,7 @@ import knickknacker.tcp.Signables.Signable;
 import knickknacker.tcp.Networking.TCPClientSide;
 import knickknacker.tcp.Networking.TCPClientUser;
 import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.tcp.Signables.SignableObject;
 import knickknacker.tcp.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
@@ -103,10 +104,7 @@ public class TCPListener implements TCPClientUser {
         /** Send a login message to the server. */
         if (args instanceof PublicUserData) {
             PublicUserData data = (PublicUserData) args;
-            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_LOGIN, data);
-            if (call != null) {
-                client.sendData(call.encode());
-            }
+            serverCall(SanderServerProtocol.FUNC_LOGIN, data);
         }
     }
 
@@ -123,10 +121,7 @@ public class TCPListener implements TCPClientUser {
     public void changedName(Object args) {
         if (args instanceof SignableString) {
             SignableString data = (SignableString) args;
-            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_NAME_CHANGE, data);
-            if (call != null) {
-                client.sendData(call.encode());
-            }
+            serverCall(SanderServerProtocol.FUNC_NAME_CHANGE, data);
         }
     }
 
@@ -140,10 +135,7 @@ public class TCPListener implements TCPClientUser {
 
     public void onChatSend(Object args) {
         if (args instanceof SignableString) {
-            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_CHAT_SEND, (SignableString) args);
-            if (call != null) {
-                client.sendData(call.encode());
-            }
+            serverCall(SanderServerProtocol.FUNC_CHAT_SEND, (SignableString) args);
         }
     }
 
@@ -155,16 +147,47 @@ public class TCPListener implements TCPClientUser {
 
     public void onGetUsers(Object args) {
         if (args instanceof Signable) {
-            RemoteCall call = callWithSign(SanderServerProtocol.FUNC_GET_USERS, (Signable) args);
-            if (call != null) {
-                client.sendData(call.encode());
-            }
+            serverCall(SanderServerProtocol.FUNC_GET_USERS, (Signable) args);
         }
     }
 
     public void onGetUsersResponse(Object args) {
         if (args instanceof ArrayList) {
             callback.call(NetworkServiceProtocol.ON_GET_USERS_RESPONSE, (ArrayList) args);
+        }
+    }
+
+    public void onAddedSanderPunten(Object args) {
+        if (args instanceof SignableObject) {
+            serverCall(SanderServerProtocol.FUNC_ADDED_SANDERPUNTEN, (SignableObject) args);
+        }
+    }
+
+    public void onAddedSanderPuntenBroadcast(Object args) {
+        if (args instanceof ArrayList) {
+            callback.call(NetworkServiceProtocol.ON_ADDED_SANDERPUNTEN_BROADCAST, (ArrayList) args);
+        }
+    }
+
+    public void onAdminApply(Object args) {
+        if (args instanceof SignableString) {
+            serverCall(SanderServerProtocol.FUNC_ADMIN_APPLY, (SignableString) args);
+        }
+    }
+
+    public void onAdminApplyResponse(Object args) {
+        if (args instanceof String) {
+            String response = (String) args;
+            if (response.equals(SanderServerProtocol.STATUS_OK)) {
+                callback.call(NetworkServiceProtocol.ON_ADMIN_APPLY_RESPONSE, null);
+            }
+        }
+    }
+
+    private void serverCall(String func, Signable signable) {
+        RemoteCall call = callWithSign(func, signable);
+        if (call != null) {
+            client.sendData(call.encode());
         }
     }
 
