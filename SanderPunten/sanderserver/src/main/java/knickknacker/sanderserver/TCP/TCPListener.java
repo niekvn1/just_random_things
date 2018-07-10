@@ -182,7 +182,7 @@ public class TCPListener implements TCPServerUser {
             user.setAddress(address);
             user.setPort(port);
 
-            server.sendTo(address, port, SanderServerProtocol.ok(SanderServerProtocol.FUNC_LOGIN_RESPONSE));
+            callWithObject(SanderServerProtocol.FUNC_LOGIN_RESPONSE, users[data.getId()].getPublicUserData(), address, port);
 
             callback.stringDisplay(user.getPublicUserData().getName() + " login verified.");
         }
@@ -212,10 +212,98 @@ public class TCPListener implements TCPServerUser {
             SignableString msg = (SignableString) args;
             User user = users[msg.getId()];
             PublicUserData data = user.getPublicUserData();
-            String response = data.getName() + ": " + msg.getString();
-            broadcastWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, response);
-            callback.stringDisplay(response);
+            if (msg.getString().substring(0,1).equals("/")) {
+                onChatCommand(user, msg.getString(), address, port);
+            } else {
+                String response = data.getName() + ": " + msg.getString();
+                broadcastWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, response);
+                callback.stringDisplay(response);
+            }
         }
+    }
+
+    private void onChatCommand(User sender, String msg, String address, int port) {
+        if (msg == null || msg.equals("")) {
+            return;
+        }
+
+        String[] split = msg.split(" ");
+        if (split.length < 1) {
+            return;
+        }
+
+        switch (split[0]) {
+            case "/admin":
+                chatAdmin(sender, split, true, address, port);
+                break;
+            case "/!admin":
+                chatAdmin(sender, split, false, address, port);
+                break;
+            case "/sp":
+                chatSanderPunten(sender, split, address, port);
+                break;
+        }
+    }
+
+    private void chatSanderPunten(User sender, String[] args, String address, int port) {
+        if (!sender.getPublicUserData().isAdmin()) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + "Ey Yo, u no admin bro!", address, port);
+            return;
+        } else if (args.length < 3) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Usage] " + "/sp <name> <sanderpunten>", address, port);
+            return;
+        } else if (args[2].length() > 7) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + "To much for one call.", address, port);
+            return;
+        }
+
+        int id = findUserIdWithName(args[1]);
+        if (id == -1) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + "No user with name: " + args[1], address, port);
+            return;
+        }
+
+        User user = users[id];
+        int add;
+        if (args[2].matches("-?\\d+")) {
+            add = Integer.parseInt(args[2]);
+            user.getPublicUserData().setSanderpunten(
+                    user.getPublicUserData().getSanderpunten() + add
+            );
+        } else {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Usage] " + "/sp <name> <sanderpunten>", address, port);
+            return;
+        }
+
+        ArrayList<PublicUserData> response = new ArrayList<>();
+        response.add(user.getPublicUserData());
+        String r = "[Server] " + "added " + add + " sanderpunten to " + args[1] + ".";
+        callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, r, address, port);
+        callback.stringDisplay(r);
+        broadcastWithObject(SanderServerProtocol.FUNC_ADDED_SANDERPUNTEN_BROADCAST, response);
+    }
+
+    private void chatAdmin(User sender, String[] args, boolean admin, String address, int port) {
+        if (!sender.getPublicUserData().isAdmin()) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + "Ey Yo, u no admin bro!", address, port);
+            return;
+        } else if (args.length < 2) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Usage] " + "/admin <name>", address, port);
+            return;
+        }
+
+        int id = findUserIdWithName(args[1]);
+        if (id == -1) {
+            callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + "No user with name: " + args[1], address, port);
+            return;
+        }
+
+        users[id].getPublicUserData().setAdmin(admin);
+        writeUser(id);
+
+        String response = "Set admin for " + args[1] + " to: " + admin;
+        callback.stringDisplay(response);
+        callWithObject(SanderServerProtocol.FUNC_CHAT_RECEIVE, "[Server] " + response, address, port);
     }
 
     private void onGetUsers(Object args, String address, int port) {
@@ -225,9 +313,6 @@ public class TCPListener implements TCPServerUser {
     private void onAddedSanderPunten(Object args, String address, int port) {
         if (args instanceof SignableObject) {
             SignableObject object = (SignableObject) args;
-            if (!users[object.getId()].getPublicUserData().isAdmin()) {
-                server.sendTo(address, port, SanderServerProtocol.badRequest(SanderServerProtocol.FUNC_SERVER_EXCEPTION));
-            }
 
             if (object.getObject() instanceof ArrayList) {
                 ArrayList userData = (ArrayList) object.getObject();
@@ -235,7 +320,7 @@ public class TCPListener implements TCPServerUser {
                 PublicUserData data;
                 for (int i = 0; i < userData.size(); i++) {
                     if (userData.get(i) instanceof PublicUserData) {
-                        data = handleAddedSanderPunten((PublicUserData) userData.get(i));
+                        data = handleAddedSanderPunten(users[object.getId()], (PublicUserData) userData.get(i));
                         if (data != null) {
                             response.add(data);
                         }
@@ -249,12 +334,38 @@ public class TCPListener implements TCPServerUser {
         }
     }
 
+    private PublicUserData handleAddedSanderPunten(User applier, PublicUserData data) {
+        if (data.getId() >= users.length) {
+            return null;
+        }
+
+        User user = users[data.getId()];
+        if (applier.getPublicUserData().isAdmin()) {
+            user.getPublicUserData().setSanderpunten(
+                    user.getPublicUserData().getSanderpunten() + data.getSanderpunten()
+            );
+        } else if (data.getSanderpunten() > 0) {
+            user.getPublicUserData().setSanderpunten(
+                    user.getPublicUserData().getSanderpunten() + data.getSanderpunten()
+            );
+
+            applier.getPublicUserData().setSanderpunten(
+                    applier.getPublicUserData().getSanderpunten() - data.getSanderpunten()
+            );
+        }
+
+        writeUser(data.getId());
+        callback.stringDisplay(user.getPublicUserData().getName() + "(" + user.getPublicUserData().getId() + ")" + " now has " + user.getPublicUserData().getSanderpunten() + " Sanderpunten.");
+        return user.getPublicUserData();
+    }
+
     private void onAdminApply(Object args, String address, int port) {
         if (args instanceof SignableString) {
             SignableString signableString = (SignableString) args;
             String password = signableString.getString();
             if (password.equals(ADMIN_PASSWORD)) {
                 users[signableString.getId()].getPublicUserData().setAdmin(true);
+                writeUser(signableString.getId());
                 server.sendTo(address, port, SanderServerProtocol.ok(SanderServerProtocol.FUNC_ADMIN_APPLY_RESPONSE));
                 callback.stringDisplay(users[signableString.getId()].getPublicUserData().getName() + " is now admin.");
             } else {
@@ -262,21 +373,6 @@ public class TCPListener implements TCPServerUser {
                 callback.stringDisplay(users[signableString.getId()].getPublicUserData().getName() + " failed to become admin.");
             }
         }
-    }
-
-    private PublicUserData handleAddedSanderPunten(PublicUserData data) {
-        if (data.getId() >= users.length) {
-            return null;
-        }
-
-        User user = users[data.getId()];
-        user.getPublicUserData().setSanderpunten(
-                user.getPublicUserData().getSanderpunten() + data.getSanderpunten()
-        );
-
-        writeUser(data.getId());
-        callback.stringDisplay(user.getPublicUserData().getName() + "(" + user.getPublicUserData().getId() + ")" + " now has " + user.getPublicUserData().getSanderpunten() + " Sanderpunten.");
-        return user.getPublicUserData();
     }
 
     private void callWithObject(String func, Serializable object, String address, int port) {
@@ -412,6 +508,7 @@ public class TCPListener implements TCPServerUser {
         int punten;
         String name;
         PublicKey publicKey;
+        String admin;
         try {
             InputStream in = new FileInputStream(file);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -419,6 +516,8 @@ public class TCPListener implements TCPServerUser {
             id = Integer.parseInt(reader.readLine());
             name = reader.readLine();
             punten = Integer.parseInt(reader.readLine());
+            admin = reader.readLine();
+            Log.i("READ ADMIN", admin);
 
             String key = reader.readLine().replace('#', '\n');
 
@@ -428,6 +527,12 @@ public class TCPListener implements TCPServerUser {
             PublicUserData data = new PublicUserData(id);
             data.setName(name);
             data.setSanderpunten(punten);
+            if (admin.equals("true")) {
+                data.setAdmin(true);
+            } else {
+                data.setAdmin(false);
+            }
+
             User user = new User(data, publicKey);
             user.setAddress("offline");
             user.setPort(-1);
@@ -470,6 +575,7 @@ public class TCPListener implements TCPServerUser {
             String content = user.getPublicUserData().getId() + "\n"
                     + user.getPublicUserData().getName() + "\n"
                     + user.getPublicUserData().getSanderpunten() + "\n"
+                    + user.getPublicUserData().isAdmin() + "\n"
                     + RSA.saveKey(user.getPublicKey()).replace('\n', '#');
             writer.write(content);
             writer.flush();

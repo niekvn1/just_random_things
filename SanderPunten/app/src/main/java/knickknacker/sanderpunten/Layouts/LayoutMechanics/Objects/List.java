@@ -5,7 +5,6 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import knickknacker.sanderpunten.Layouts.Layout;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchSubscriber;
@@ -148,17 +147,13 @@ public class List extends LayoutBox implements TouchSubscriber {
                 scrollOffset -= (copy.get(offsetChild).getInHeight() + margin);
                 offset = load(box, corners);
             } else if (full && !box.isIgnore()) {
-//                Log.i("LIST", "top ignore");
                 layout.getManager().toIgnore(box);
             } else if (full && box.isIgnore()) {
-//                Log.i("LIST", "return at " + i);
                 return;
             } else if (corners[3] > getUnitTop()) {
-//                Log.i("LIST", "set full");
                 full = true;
                 offset = load(box, corners);
             } else {
-//                Log.i("LIST", "not full");
                 offset = load(box, corners);
             }
         }
@@ -166,8 +161,11 @@ public class List extends LayoutBox implements TouchSubscriber {
 
     private float load(LayoutBox box, float[] corners) {
         /** Set the new corners after scrolling for a box and return the offset for the next box. */
-        box.setIgnore(false);
         box.initAll(corners[0], corners[1], corners[2], corners[3]);
+        if (box.isIgnore()) {
+            layout.getManager().dontIgnore(box);
+        }
+
         return corners[3];
     }
 

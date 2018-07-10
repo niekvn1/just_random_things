@@ -113,6 +113,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         /** Initialize the drawable by calling its init function and setting the shader program. */
         d.init();
         setProgram(d);
+        d.setReady(true);
     }
 
     private void setProgram(Drawable d) {

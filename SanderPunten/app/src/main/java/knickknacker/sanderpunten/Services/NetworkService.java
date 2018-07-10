@@ -56,7 +56,7 @@ public class NetworkService extends Service implements TCPCallback {
                     Bundle bundle = msg.getData();
                     String func = bundle.getString(FUNC_NAME, "");
                     Object args = bundle.getSerializable(FUNC_ARGS);
-                    client.call(func, args);
+                    client.call(func, args, true);
             }
         }
     }

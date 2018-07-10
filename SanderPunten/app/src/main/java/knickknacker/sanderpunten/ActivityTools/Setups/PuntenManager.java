@@ -1,6 +1,7 @@
 package knickknacker.sanderpunten.ActivityTools.Setups;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public class PuntenManager extends LayoutSetup {
         list.setColor(Colors.WHITE_ALPHA_6);
 
         Button button = new Button(root, 0.05f, 0.95f, 0.05f, 0.14f, true);
+        TextBox text = new TextBox(button, 0.05f, 0.95f, 0.05f, 0.95f, true);
+        text.setTextManager(fonts[0]);
         button.setColor(Colors.BLUE);
         button.setHitColor(Colors.GREEN);
         button.setTouchCallback(new TouchCallback() {
@@ -53,15 +56,12 @@ public class PuntenManager extends LayoutSetup {
                 commit();
             }
         });
-
-        TextBox text = new TextBox(button, 0.05f, 0.95f, 0.05f, 0.95f, true);
-        text.setTextManager(fonts[0]);
         text.setText("Save Changes", Colors.WHITE);
 
         callback.getUsers();
     }
 
-    public void setUsers(ArrayList users) {
+    public void setUsers(ArrayList users, boolean reload) {
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i) instanceof PublicUserData) {
                 PublicUserData data = (PublicUserData) users.get(i);
@@ -79,7 +79,9 @@ public class PuntenManager extends LayoutSetup {
             }
         }
 
-        layout.reload();
+        if (reload) {
+            layout.reload();
+        }
     }
 
     private void editUser(User user, PublicUserData data) {
@@ -104,25 +106,34 @@ public class PuntenManager extends LayoutSetup {
 
         minus = new Button(entry, 0.51f, 0.65f, 0.05f, 0.95f, true);
         minus.setBackgroundTexture(layoutManager.getTextures()[10]);
-        minus.setColor(Colors.WHITE);
-        minus.setHitColor(Colors.RED);
-        minus.setTouchCallback(new TouchCallback() {
-            @Override
-            public void onTouch(LayoutBox box) {
-                removeSanderPunt((Button) box);
-            }
-        });
+        if (callback.isAdmin()) {
+            minus.setColor(Colors.WHITE);
+            minus.setHitColor(Colors.RED);
+            minus.setTouchCallback(new TouchCallback() {
+                @Override
+                public void onTouch(LayoutBox box) {
+                    removeSanderPunt((Button) box);
+                }
+            });
+        } else {
+            minus.setColor(Colors.GRAY_ALPHA_6);
+        }
 
         plus = new Button(entry, 0.85f, 0.99f, 0.05f, 0.95f, true);
         plus.setBackgroundTexture(layoutManager.getTextures()[9]);
-        plus.setColor(Colors.WHITE);
-        plus.setHitColor(Colors.GREEN);
-        plus.setTouchCallback(new TouchCallback() {
-            @Override
-            public void onTouch(LayoutBox box) {
-                addSanderPunt((Button) box);
-            }
-        });
+        if (callback.isAdmin() || user.getId() != myId) {
+            plus.setColor(Colors.WHITE);
+            plus.setHitColor(Colors.GREEN);
+            plus.setTouchCallback(new TouchCallback() {
+                @Override
+                public void onTouch(LayoutBox box) {
+                    addSanderPunt((Button) box);
+                }
+            });
+        } else {
+            plus.setColor(Colors.GRAY_ALPHA_6);
+        }
+
 
         punten = new TextBox(entry, 0.66f, 0.84f, 0.05f, 0.95f, true);
         punten.setTextManager(fonts[0]);
@@ -150,11 +161,27 @@ public class PuntenManager extends LayoutSetup {
     }
 
     private void addSanderPunt(Button plus) {
+        int found = 0;
         for (User user : users) {
             if (user.getPlus() == plus) {
                 user.getPublicUserData().setSanderpunten(user.getPublicUserData().getSanderpunten() + 1);
                 user.setAdded(user.getAdded() + 1);
                 setPunten(user.getPunten(), user.getPublicUserData());
+                if (user.getPublicUserData().getId() == myId) {
+                    break;
+                } else {
+                    found++;
+                }
+            }
+
+            if (user.getPublicUserData().getId() == myId) {
+                user.getPublicUserData().setSanderpunten(user.getPublicUserData().getSanderpunten() - 1);
+                user.setAdded(user.getAdded() - 1);
+                setPunten(user.getPunten(), user.getPublicUserData());
+                found++;
+            }
+
+            if (found > 1) {
                 break;
             }
         }

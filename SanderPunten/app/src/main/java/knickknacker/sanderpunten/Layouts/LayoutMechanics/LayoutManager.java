@@ -37,6 +37,7 @@ public class LayoutManager implements GLRenderCallback {
     public final static int INTERRUPT_LAYOUT_RELOAD = 6;
     public final static int INTERRUPT_IGNORE = 7;
     public final static int INTERRUPT_LOAD_BOXES = 8;
+    public final static int INTERRUPT_UNIGNORE = 9;
 
     private Layout[] layouts;
     private ConcurrentList<Layout> needLoad;
@@ -44,6 +45,7 @@ public class LayoutManager implements GLRenderCallback {
     private ConcurrentList<Layout> needReload;
     private ConcurrentList<TextManager> fontLoad;
     private ConcurrentList<LayoutBox> toIgnore;
+    private ConcurrentList<LayoutBox> dontIgnore;
     private ConcurrentList<LayoutBox> loadBoxes;
     private ArrayList<LayoutBox> directAccess;
     private GLRenderer renderer;
@@ -77,6 +79,7 @@ public class LayoutManager implements GLRenderCallback {
         fontLoad = new ConcurrentList<>();
         needReload = new ConcurrentList<>();
         toIgnore = new ConcurrentList<>();
+        dontIgnore = new ConcurrentList<>();
         loadBoxes = new ConcurrentList<>();
     }
 
@@ -224,15 +227,16 @@ public class LayoutManager implements GLRenderCallback {
         if (interrupt.hasSet(INTERRUPT_LOAD_BOXES)) {
             loadBoxes();
         }
+
+        if (interrupt.hasSet(INTERRUPT_UNIGNORE)) {
+            unIgnore();
+        }
     }
 
     private void loadBoxes() {
         while (loadBoxes.size() > 0) {
             for (LayoutBox box : loadBoxes.getCopy()) {
-                for (Drawable d: box.toDrawable(drawEdges)) {
-                    renderer.newDrawable(d);
-                    renderer.initDrawable(d);
-                }
+                doLoad(box);
 
                 loadBoxes.remove(box);
             }
@@ -242,19 +246,68 @@ public class LayoutManager implements GLRenderCallback {
         interrupt.unset(INTERRUPT_LOAD_BOXES);
     }
 
+    private void doLoad(LayoutBox box) {
+        box.setIgnore(false);
+        for (Drawable d: box.toDrawable(drawEdges)) {
+            if (d != null) {
+                if (!renderer.getDrawables().contains(d)) {
+                    renderer.newDrawable(d);
+                    if (!d.isReady()) {
+                        renderer.initDrawable(d);
+                    }
+                }
+            }
+        }
+
+        for (LayoutBox child : box.getChildren()) {
+            doLoad(child);
+        }
+    }
+
     private void ignore() {
         while (toIgnore.size() > 0) {
             for (LayoutBox box : toIgnore.getCopy()) {
-                for (Drawable d : box.fetchDrawables()) {
-                    renderer.removeDrawable(d);
-                }
+                doIgnore(box);
 
                 toIgnore.remove(box);
             }
         }
 
+        Log.i("DONE", "" + renderer.getDrawables().size());
+
 //        toIgnore.clear();
         interrupt.unset(INTERRUPT_IGNORE);
+    }
+
+    private void unIgnore() {
+        while (dontIgnore.size() > 0) {
+            for (LayoutBox box : dontIgnore.getCopy()) {
+                doUnIgnore(box);
+
+                dontIgnore.remove(box);
+            }
+        }
+
+        interrupt.unset(INTERRUPT_UNIGNORE);
+    }
+
+    private void doUnIgnore(LayoutBox box) {
+        box.setIgnore(false);
+
+        for (LayoutBox child : box.getChildren()) {
+            doUnIgnore(child);
+        }
+    }
+
+    private void doIgnore(LayoutBox box) {
+        box.setIgnore(true);
+        for (Drawable d : box.fetchDrawables()) {
+            renderer.removeDrawable(d);
+        }
+
+        for (LayoutBox child : box.getChildren()) {
+            doIgnore(child);
+        }
     }
 
     private void resolution() {
@@ -346,7 +399,6 @@ public class LayoutManager implements GLRenderCallback {
     private void layoutReload() {
         while (needReload.size() > 0) {
             for (Layout l : needReload.getCopy()) {
-                Log.i("RELOAD LAYOUT", "" + l);
                 l.init(worldWidth / unit, worldHeight / unit);
                 ArrayList<Drawable> newDrawables = l.initDrawables(false);
                 for (Drawable d : newDrawables) {
@@ -375,13 +427,16 @@ public class LayoutManager implements GLRenderCallback {
     }
 
     public void toIgnore(LayoutBox box) {
-        box.setIgnore(true);
         toIgnore.add(box);
         interrupt.set(INTERRUPT_IGNORE);
     }
 
+    public void dontIgnore(LayoutBox box) {
+        dontIgnore.add(box);
+        interrupt.set(INTERRUPT_UNIGNORE);
+    }
+
     public void load(LayoutBox box) {
-        box.setIgnore(false);
         loadBoxes.add(box);
         interrupt.set(INTERRUPT_LOAD_BOXES);
     }

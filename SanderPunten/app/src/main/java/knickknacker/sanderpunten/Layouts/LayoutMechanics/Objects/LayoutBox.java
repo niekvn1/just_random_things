@@ -21,6 +21,8 @@ public class LayoutBox {
     protected LayoutBox parent;
     protected float left, right, bottom, top;
     protected float inLeft, inRight, inBottom, inTop;
+    protected float scissorL, scissorR, scissorB, scissorT;
+    protected boolean scissorSet = false;
     protected ConcurrentList<LayoutBox> children = new ConcurrentList<>();
     protected float[] transformMatrix = null;
     protected int backgroundTexture = -1;
@@ -65,6 +67,7 @@ public class LayoutBox {
             layout = parent.getLayout();
             this.zIndex = parent.getzIndex() - 0.0001f;
             this.parent.addChild(this);
+            ignore = parent.isIgnore();
         }
     }
 
@@ -139,7 +142,6 @@ public class LayoutBox {
                                              color, backgroundTexture,
                                              DrawObjects.get_background_texcoords());
                 drawable.setTransformMatrix(transformMatrix);
-                drawable.setReady(true);
                 if (parent != null) {
                     int[] scissors = scissor();
                     drawable.setScissor(scissors[0], scissors[1], scissors[2], scissors[3]);
@@ -164,13 +166,33 @@ public class LayoutBox {
 
     protected int[] scissor() {
         LayoutManager manager = layout.getManager();
-        float left = (parent.getLeft() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2);
-        float right = (float) Math.ceil((parent.getRight() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2));
-        float bottom = (parent.getBottom() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2);
-        float top = (float) Math.ceil((parent.getTop() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2));
-        int width = (int) (right - left);
-        int height = (int) (top - bottom);
-        return new int[] {(int) left, (int) bottom, width, height};
+        scissorL = (parent.getLeft() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2);
+        scissorR = (float) Math.ceil((parent.getRight() + manager.getTotalTransX()) * manager.getScaleX() + (manager.getWidth() / 2));
+        scissorB = (parent.getBottom() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2);
+        scissorT = (float) Math.ceil((parent.getTop() + manager.getTotalTransY()) * manager.getScaleY() + (manager.getHeight() / 2));
+        if (parent.isScissorSet()) {
+            if (scissorL < parent.getScissorL()) {
+                scissorL = parent.getScissorL();
+            }
+
+            if (scissorR > parent.getScissorR()) {
+                scissorR = parent.getScissorR();
+            }
+
+            if (scissorB < parent.getScissorB()) {
+                scissorB = parent.getScissorB();
+            }
+
+            if (scissorT > parent.getScissorT()) {
+                scissorT = parent.getScissorT();
+            }
+        }
+
+        int width = (int) (scissorR - scissorL);
+        int height = (int) (scissorT - scissorB);
+
+        scissorSet = true;
+        return new int[] {(int) scissorL, (int) scissorB, width, height};
     }
 
     public void onTouchEvent(TouchData data) {
@@ -254,7 +276,6 @@ public class LayoutBox {
             for (int i = 0; i < 4; i++) {
                 edge_stip = new TriangleStrip(edges[i], Colors.RED, -1, null);
                 edge_stip.setTransformMatrix(transformMatrix);
-                edge_stip.setReady(true);
                 this.edges.add(edge_stip);
                 returnDrawables.add(edge_stip);
             }
@@ -432,5 +453,25 @@ public class LayoutBox {
 
     public void setLayout(Layout layout) {
         this.layout = layout;
+    }
+
+    public float getScissorL() {
+        return scissorL;
+    }
+
+    public float getScissorR() {
+        return scissorR;
+    }
+
+    public float getScissorB() {
+        return scissorB;
+    }
+
+    public float getScissorT() {
+        return scissorT;
+    }
+
+    public boolean isScissorSet() {
+        return scissorSet;
     }
 }

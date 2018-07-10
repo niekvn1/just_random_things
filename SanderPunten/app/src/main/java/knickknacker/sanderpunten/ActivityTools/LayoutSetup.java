@@ -18,4 +18,20 @@ public class LayoutSetup {
         this.layout = layout;
         fonts = new TextManager[fontCount];
     }
+
+    public LayoutManager getLayoutManager() {
+        return layoutManager;
+    }
+
+    public Layout getLayout() {
+        return layout;
+    }
+
+    public TextManager[] getFonts() {
+        return fonts;
+    }
+
+    public Context getContext() {
+        return context;
+    }
 }

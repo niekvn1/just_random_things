@@ -70,8 +70,6 @@ public class TextBox extends LayoutBox {
             textDraw.editTexels(newText.getTexcoords());
             textDraw.editColor(textColor);
             textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
-        } else {
-            textDraw.setReady(false);
         }
     }
 
@@ -86,7 +84,6 @@ public class TextBox extends LayoutBox {
             textDraw = textManager.getTextFit(text, 0, 0, zIndex - 0.0001f, textColor, getWidth(), getHeight(), stayInsideBox, breakOnSpace);
             if (textDraw != null) {
                 textDraw.setTransformMatrix(Matrices.getTranslationMatrix(left, top));
-                textDraw .setReady(true);
                 if (parent != null) {
                     int[] scissors = scissor();
                     textDraw.setScissor(scissors[0], scissors[1], scissors[2], scissors[3]);

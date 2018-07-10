@@ -4,13 +4,15 @@ import android.util.Log;
 
 import knickknacker.sanderpunten.Layouts.Layout;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchListener.TouchData;
+import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchSubscriber;
 
 /**
  * Created by Niek on 29-5-2018.
  */
 
-public class Button extends LayoutBox {
+public class Button extends LayoutBox implements TouchSubscriber {
     private float[] hitColor = null;
     private boolean down = false;
 
@@ -33,6 +35,7 @@ public class Button extends LayoutBox {
     @Override
     public void onTouchDown(TouchData data) {
         down = true;
+        layout.subscribeToTouch(this);
         if (drawable != null) {
             drawable.editColor(hitColor);
         }
@@ -47,13 +50,32 @@ public class Button extends LayoutBox {
         super.onTouchUp(data);
     }
 
-    @Override
-    public void onTouchCancel(TouchData data) {
+    private void onTouchUpSub(TouchData data) {
+        if (!touchHit(data.getX(), data.getY())) {
+            onTouchCancel();
+        }
+    }
+
+
+
+    private void onTouchCancel() {
         if (down) {
             drawable.editColor(color);
+            down = false;
         }
 
-        super.onTouchCancel(data);
+        layout.unsubscripeToTouch(this);
+    }
+
+    public void onTouchSub(TouchData data) {
+        switch(data.getType()) {
+            case TouchListener.TOUCH_UP:
+                onTouchUpSub(data);
+                break;
+            case TouchListener.TOUCH_CANCEL:
+                onTouchCancel();
+                break;
+        }
     }
 
     public float[] getHitColor() {

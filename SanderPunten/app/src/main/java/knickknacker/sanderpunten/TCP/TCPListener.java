@@ -3,6 +3,7 @@ package knickknacker.sanderpunten.TCP;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.GeneralSecurityException;
@@ -83,105 +84,12 @@ public class TCPListener implements TCPClientUser {
         editor.apply();
     }
 
-    public void register(Object args) {
+    public void onRegister(Object args) {
         /** Send a register message to the server. */
         RemoteCall call = new RemoteCall(SanderServerProtocol.FUNC_REGISTER,
                                          settings.getString(PUBLIC_KEY_KEY, null),
                                          null);
         client.sendData(call.encode());
-    }
-
-    private void onRegisterResponse(Object args) {
-        /** Handle the response of the server on the register message. */
-        if (args instanceof PublicUserData) {
-            PublicUserData publicUserData = ((PublicUserData) args);
-            Log.i("ServerResponse", "Successful register");
-            callback.call(NetworkServiceProtocol.ON_REGISTER_RESPONSE, publicUserData);
-        }
-    }
-
-    public void login(Object args) {
-        /** Send a login message to the server. */
-        if (args instanceof PublicUserData) {
-            PublicUserData data = (PublicUserData) args;
-            serverCall(SanderServerProtocol.FUNC_LOGIN, data);
-        }
-    }
-
-    public void onLoginResponse(Object args) {
-        /** Handle the response of the server on the login message. */
-        if (args instanceof String) {
-            String response = (String) args;
-            if (response.equals(SanderServerProtocol.STATUS_OK)) {
-                callback.call(NetworkServiceProtocol.ON_LOGIN_RESPONSE, null);
-            }
-        }
-    }
-
-    public void changedName(Object args) {
-        if (args instanceof SignableString) {
-            SignableString data = (SignableString) args;
-            serverCall(SanderServerProtocol.FUNC_NAME_CHANGE, data);
-        }
-    }
-
-    public void onNameChangeResponse(Object args) {
-        if (args instanceof PublicUserData) {
-            callback.call(NetworkServiceProtocol.ON_NAME_CHANGE_RESPONSE, (PublicUserData) args);
-        } else if (args instanceof String) {
-            callback.call(NetworkServiceProtocol.ON_NAME_CHANGE_RESPONSE, (String) args);
-        }
-    }
-
-    public void onChatSend(Object args) {
-        if (args instanceof SignableString) {
-            serverCall(SanderServerProtocol.FUNC_CHAT_SEND, (SignableString) args);
-        }
-    }
-
-    public void onChatReceive(Object args) {
-        if (args instanceof String) {
-            callback.call(NetworkServiceProtocol.ON_CHAT_RECEIVE, (String) args);
-        }
-    }
-
-    public void onGetUsers(Object args) {
-        if (args instanceof Signable) {
-            serverCall(SanderServerProtocol.FUNC_GET_USERS, (Signable) args);
-        }
-    }
-
-    public void onGetUsersResponse(Object args) {
-        if (args instanceof ArrayList) {
-            callback.call(NetworkServiceProtocol.ON_GET_USERS_RESPONSE, (ArrayList) args);
-        }
-    }
-
-    public void onAddedSanderPunten(Object args) {
-        if (args instanceof SignableObject) {
-            serverCall(SanderServerProtocol.FUNC_ADDED_SANDERPUNTEN, (SignableObject) args);
-        }
-    }
-
-    public void onAddedSanderPuntenBroadcast(Object args) {
-        if (args instanceof ArrayList) {
-            callback.call(NetworkServiceProtocol.ON_ADDED_SANDERPUNTEN_BROADCAST, (ArrayList) args);
-        }
-    }
-
-    public void onAdminApply(Object args) {
-        if (args instanceof SignableString) {
-            serverCall(SanderServerProtocol.FUNC_ADMIN_APPLY, (SignableString) args);
-        }
-    }
-
-    public void onAdminApplyResponse(Object args) {
-        if (args instanceof String) {
-            String response = (String) args;
-            if (response.equals(SanderServerProtocol.STATUS_OK)) {
-                callback.call(NetworkServiceProtocol.ON_ADMIN_APPLY_RESPONSE, null);
-            }
-        }
     }
 
     private void serverCall(String func, Signable signable) {
@@ -237,20 +145,26 @@ public class TCPListener implements TCPClientUser {
             RemoteCall m = (RemoteCall) o;
             String func = m.getFunc();
             Object args = m.getData();
-            call(func, args);
+            call(func, args, false);
         }
     }
 
-    public void call(String func, Object args) {
-        try {
-            Method method = TCPListener.class.getDeclaredMethod(func, Object.class);
-            method.invoke(this, args);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+    public void call(String func, Object args, boolean toServer) {
+        if (func.equals(SanderServerProtocol.FUNC_REGISTER) || func.equals(SanderServerProtocol.FUNC_SERVER_EXCEPTION)) {
+            try {
+                Method method = TCPListener.class.getDeclaredMethod(func, Object.class);
+                method.invoke(this, args);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        } else if (toServer && args instanceof Signable) {
+            serverCall(func, (Signable) args);
+        } else if (!toServer) {
+            callback.call(func, (Serializable) args);
         }
     }
 

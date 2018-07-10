@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,14 +32,14 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManagerCallback;
 import knickknacker.sanderpunten.Services.NetworkService;
+import knickknacker.sanderpunten.Services.NetworkServiceProtocol;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
+import knickknacker.tcp.Protocol.SanderServerProtocol;
 import knickknacker.tcp.Signables.PublicUserData;
 import knickknacker.tcp.Signables.Signable;
 import knickknacker.tcp.Signables.SignableObject;
 import knickknacker.tcp.Signables.SignableString;
-
-import static knickknacker.sanderpunten.Services.NetworkServiceProtocol.*;
 
 public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, MainMenuCallback,
         ProfileMenuCallback, ChatMenuCallback, PuntenManagerCallback {
@@ -55,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     public static final String NAME_KEY = "userdata_name";
     public static final String ID_KEY = "userdata_id";
     public static final String PUNTEN_KEY = "userdata_punten";
+    public static final String ADMIN_KEY = "userdata_admin";
 
     private LayoutManager layoutManager;
     private int[] menuTextureIds = {R.drawable.struissander, R.drawable.sanderstrand,
@@ -99,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
-            String func = bundle.getString(FUNC_NAME, "");
-            Object args = bundle.getSerializable(FUNC_ARGS);
+            String func = bundle.getString(NetworkServiceProtocol.FUNC_NAME, "");
+            Object args = bundle.getSerializable(NetworkServiceProtocol.FUNC_ARGS);
             call(func, args);
         }
     };
@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
 
     private void connectToServer() {
         if (this.rsr != null) {
-            IntentFilter filter = new IntentFilter(BROADCAST_KEY);
+            IntentFilter filter = new IntentFilter(NetworkServiceProtocol.BROADCAST_KEY);
             registerReceiver(this.rsr, filter);
         }
 
@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     private void onConnect(Object args) {
-        Toast.makeText(this, "Connected!", Toast.LENGTH_SHORT).show();
         logIn = true;
         if (storage.getPublicUserData().getId() == -1) {
             register();
@@ -150,22 +149,19 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     private void register() {
-        ServiceFunctions.call(rsm, REGISTER, null);
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_REGISTER, null);
     }
 
     private void onRegisterResponse(Object args) {
-        Toast.makeText(this, "Register Response!", Toast.LENGTH_SHORT).show();
         if (args instanceof PublicUserData) {
             PublicUserData publicUserData = (PublicUserData) args;
-            if (publicUserData == null) {
-                Toast.makeText(this, "Server Registration Failed", Toast.LENGTH_SHORT).show();
-            } else {
-                storage.getPublicUserData().setName(publicUserData.getName());
-                storage.getPublicUserData().setId(publicUserData.getId());
-                storage.getPublicUserData().setSanderpunten(publicUserData.getSanderpunten());
-                saveUserData();
-                mainMenu.changeName(publicUserData.getName());
-            }
+            storage.getPublicUserData().setName(publicUserData.getName());
+            storage.getPublicUserData().setId(publicUserData.getId());
+            storage.getPublicUserData().setSanderpunten(publicUserData.getSanderpunten());
+            saveUserData();
+            mainMenu.changeName(publicUserData.getName());
+
+            login();
         }
     }
 
@@ -180,15 +176,29 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     private void login() {
-        ServiceFunctions.call(rsm, LOGIN, storage.getPublicUserData());
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_LOGIN, storage.getPublicUserData());
     }
 
     private void onLoginResponse(Object args) {
-        popup("Login Successful.");
+        if (args instanceof PublicUserData) {
+            PublicUserData data = (PublicUserData) args;
+            long sanderpunten = data.getSanderpunten();
+            storage.getPublicUserData().setSanderpunten(sanderpunten);
+            storage.getPublicUserData().setAdmin(data.isAdmin());
+            saveUserData();
+
+            if (mainMenu != null) {
+                mainMenu.changePunten(sanderpunten);
+            }
+
+            if (profileMenu != null) {
+                profileMenu.changePunten(sanderpunten);
+            }
+        }
     }
 
     public void changedName(String name) {
-        ServiceFunctions.call(rsm, NAME_CHANGE, new SignableString(storage.getPublicUserData().getId(), name));
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_NAME_CHANGE, new SignableString(storage.getPublicUserData().getId(), name));
     }
 
     private void onNameChangeResponse(Object args) {
@@ -205,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     public void adminApply(String password) {
-        ServiceFunctions.call(rsm, ON_ADMIN_APPLY, new SignableString(storage.getPublicUserData().getId(), password));
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_ADMIN_APPLY, new SignableString(storage.getPublicUserData().getId(), password));
     }
 
     public void onAdminApplyResponse(Object args) {
@@ -230,6 +240,18 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         mainMenu = new MainMenu(this, layoutManager, layout);
         mainMenu.setup(storage.getPublicUserData().getName(),
                 storage.getPublicUserData().getSanderpunten());
+
+        Layout puntenLayout = layoutManager.newLayout(STATE_PUNTEN_MANAGER);
+        if (puntenLayout != null) {
+            puntenManager = new PuntenManager(this, layoutManager, puntenLayout, storage.getPublicUserData().getId());
+            puntenManager.setup();
+        }
+
+        Layout chatLayout = layoutManager.newLayout(STATE_CHAT);
+        if (chatLayout != null) {
+            chatMenu = new ChatMenu(this, layoutManager, chatLayout);
+            chatMenu.setup();
+        }
     }
 
     private void popup(String text) {
@@ -275,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
             if (chatMenu != null) {
                 layoutManager.switchLayout(STATE_CHAT);
                 menuState = STATE_CHAT;
+                chatMenu.getLayout().reload();
             }
         }
     }
@@ -287,6 +310,8 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
                     puntenManager = new PuntenManager(this, layoutManager, layout, storage.getPublicUserData().getId());
                     puntenManager.setup();
                 }
+            } else {
+                getUsers();
             }
 
             if (layoutManager != null) {
@@ -297,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     public void onChatSend(String msg) {
-        ServiceFunctions.call(rsm, ON_CHAT_SEND, new SignableString(storage.getPublicUserData().getId(), msg));
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_CHAT_SEND, new SignableString(storage.getPublicUserData().getId(), msg));
     }
 
     public void onChatReceive(Object args) {
@@ -308,23 +333,27 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
     }
 
     public void getUsers() {
-        ServiceFunctions.call(rsm, ON_GET_USERS, new Signable(storage.getPublicUserData().getId()));
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_GET_USERS, new Signable(storage.getPublicUserData().getId()));
     }
 
     public void onGetUsersResponse(Object args) {
         if (args instanceof ArrayList) {
-            puntenManager.setUsers((ArrayList) args);
+            puntenManager.setUsers((ArrayList) args, true);
         }
     }
 
     public void addedSanderPunten(ArrayList<PublicUserData> data) {
-        ServiceFunctions.call(rsm, ON_ADDED_SANDERPUNTEN, new SignableObject(storage.getPublicUserData().getId(), data));
+        ServiceFunctions.call(rsm, SanderServerProtocol.FUNC_ADDED_SANDERPUNTEN, new SignableObject(storage.getPublicUserData().getId(), data));
     }
 
     public void onAddedSanderPuntenBroadcast(Object args) {
         if (args instanceof ArrayList) {
             if (puntenManager != null) {
-                puntenManager.setUsers((ArrayList) args);
+                if (menuState == STATE_PUNTEN_MANAGER) {
+                    puntenManager.setUsers((ArrayList) args, true);
+                } else {
+                    puntenManager.setUsers((ArrayList) args, false);
+                }
             }
         }
     }
@@ -361,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         }
 
         publicUserData.setSanderpunten(settings.getLong(PUNTEN_KEY, 0));
+        publicUserData.setAdmin(settings.getBoolean(ADMIN_KEY, false));
 
         System.out.println("Loaded: " + publicUserData.getName() + " " + publicUserData.getId());
     }
@@ -377,9 +407,14 @@ public class MainActivity extends AppCompatActivity implements LayoutManagerCall
         editor.putInt(ID_KEY, storage.getPublicUserData().getId());
         editor.putString(NAME_KEY, storage.getPublicUserData().getName());
         editor.putLong(PUNTEN_KEY, storage.getPublicUserData().getSanderpunten());
+        editor.putBoolean(ADMIN_KEY, storage.getPublicUserData().isAdmin());
         editor.apply();
 
         System.out.println("Saved: " + storage.getPublicUserData().getName() + " " + storage.getPublicUserData().getId());
+    }
+
+    public boolean isAdmin() {
+        return storage.getPublicUserData().isAdmin();
     }
 
     @Override

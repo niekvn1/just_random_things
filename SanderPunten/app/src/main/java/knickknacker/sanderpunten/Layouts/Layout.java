@@ -7,6 +7,7 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchSubscriber;
 import knickknacker.opengldrawables.Drawing.Drawables.Drawable;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
+import knickknacker.tcp.Networking.ConcurrentList;
 
 /**
  * Created by Niek on 2-6-2018.
@@ -24,14 +25,14 @@ public class Layout {
     private boolean edges;
     private boolean used = false;
     private LayoutManager manager;
-    private ArrayList<TouchSubscriber> touchSubscribers;
+    private ConcurrentList<TouchSubscriber> touchSubscribers;
 
     public Layout(LayoutManager manager, boolean edges) {
         this.manager = manager;
         this.root = new LayoutBox(this);
         touchRoot = root;
         drawables = new ArrayList<>();
-        touchSubscribers = new ArrayList<>();
+        touchSubscribers = new ConcurrentList<>();
         this.edges = edges;
     }
 
@@ -121,7 +122,7 @@ public class Layout {
 
     public void onTouch(TouchListener.TouchData data) {
         touchRoot.onTouchEvent(data);
-        for (TouchSubscriber sub : touchSubscribers) {
+        for (TouchSubscriber sub : touchSubscribers.getCopy()) {
             sub.onTouchSub(data);
         }
     }

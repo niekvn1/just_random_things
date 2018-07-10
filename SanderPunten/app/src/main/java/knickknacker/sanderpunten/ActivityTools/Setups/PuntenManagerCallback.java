@@ -10,4 +10,6 @@ public interface PuntenManagerCallback {
     void addedSanderPunten(ArrayList<PublicUserData> changedUsers);
 
     void addedSanderPuntenMe(long punten);
+
+    boolean isAdmin();
 }

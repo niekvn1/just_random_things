@@ -74,6 +74,8 @@ public class ChatMenu extends LayoutSetup implements TextBarCallback {
         entry.setTextManager(fonts[0]);
         entry.setColor(Colors.GRAY_ALPHA_6);
         entry.setText(msg);
-        layoutManager.reload(layout);
+        if (layoutManager.getLayout() == layout) {
+            layoutManager.reload(layout);
+        }
     }
 }
