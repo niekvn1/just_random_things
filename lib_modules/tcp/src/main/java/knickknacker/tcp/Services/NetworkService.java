@@ -38,7 +38,6 @@ public class NetworkService extends Service implements TCPServerUser {
 
     @Override
     public void onCreate() {
-        Log.i("Service", "onCreate");
         this.server = new TCPServerSide(this, 11223, 4096);
         this.server.startServer();
     }
@@ -97,7 +96,7 @@ public class NetworkService extends Service implements TCPServerUser {
 
     public void call(String func, Object args) {
         try {
-            Log.i("Calling", func + "(" + args.getClass() + ")");
+//            Log.i("Calling", func + "(" + args.getClass() + ")");
             if (args instanceof ByteCall) {
                 ByteCall byteCall = (ByteCall) args;
                 if (byteCall.getBytes() != null) {

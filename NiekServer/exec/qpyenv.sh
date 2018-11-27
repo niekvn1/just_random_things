@@ -1,0 +1,15 @@
+TERM=screen
+PATH=/data/data/org.qpython.qpy3/files/bin:/system/bin:/system/xbin
+LD_LIBRARY_PATH=.:/data/data/org.qpython.qpy3/files/lib/:/data/data/org.qpython.qpy3/files/:/data/data/org.qpython.qpy3/lib/
+PYTHONHOME=/data/data/org.qpython.qpy3/files
+ANDROID_PRIVATE=/data/data/org.qpython.qpy3/files
+PYTHONPATH=/data/data/org.qpython.qpy3/files/lib/python3.2/site-packages/:/data/data/org.qpython.qpy3/files/lib/python3.2/:/data/data/org.qpython.qpy3/files/lib/python3.2.zip:/data/data/org.qpython.qpy3/files/lib/python3.2/lib-dynload/:/storage/emulated/0/qpython/lib/python3.2/site-packages/:/storage/emulated/0/qpython/scripts3
+PYTHONSTARTUP=None
+PYTHONOPTIMIZE=2
+TMPDIR=/storage/emulated/0/qpython/cache
+AP_HOST=127.0.0.1
+AP_PORT=55967
+AP_HANDSHAKE=ec527278-308d-4758-8688-fa5cb927a4ef
+ANDROID_PUBLIC=/storage/emulated/0/qpython
+ANDROID_PRIVATE=/data/data/org.qpython.qpy3/files
+ANDROID_ARGUMENT=/storage/emulated/0/qpython/scripts3

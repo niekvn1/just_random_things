@@ -52,7 +52,6 @@ public class SocketHolder {
 
     /** Closes the socket. */
     public void close() {
-        System.out.println("SocketHolder close");
         byte temp;
         writeLock.lock();
         try {
@@ -61,7 +60,6 @@ public class SocketHolder {
 
             if (temp == OPEN) {
                 try {
-                    System.out.println("Actual Closing");
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -88,7 +86,7 @@ public class SocketHolder {
         try {
             socketState = SENDING;
         } finally {
-            System.out.println("Set Sending");
+//            System.out.println("Set Sending");
         }
     }
 
@@ -96,7 +94,7 @@ public class SocketHolder {
     public void unsetSending() {
         socketState = OPEN;
         writeLock.unlock();
-        System.out.println("Unset Sending");
+//        System.out.println("Unset Sending");
     }
 
     /** Get the receive thread. */

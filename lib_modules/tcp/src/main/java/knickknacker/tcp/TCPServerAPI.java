@@ -61,27 +61,27 @@ public class TCPServerAPI {
     }
 
     private void onConnect(String address, int port) {
-        Log.i("onConnect", "Address: " + address + ":" + port);
+//        Log.i("onConnect", "Address: " + address + ":" + port);
         callback.onConnect(address, port);
     }
 
     private void onDisconnect(String address, int port) {
-        Log.i("onDisconnect", "Address: " + address + ":" + port);
+//        Log.i("onDisconnect", "Address: " + address + ":" + port);
         callback.onDisconnect(address, port);
     }
 
     private void onReceive(String address, int port, byte[] bytes) {
-        Log.i("onReceive", "Address: " + address + ":" + port);
+//        Log.i("onReceive", "Address: " + address + ":" + port);
         callback.onReceive(address, port, bytes);
     }
 
     public void sendTo(String address, int port, byte[] bytes) {
-        Log.i("sendTo", "Address: " + address + ":" + port);
+//        Log.i("sendTo", "Address: " + address + ":" + port);
         ServiceFunctions.call(rsm, NetworkServiceProtocol.ON_SEND_TO, new ByteCall(address, port, bytes));
     }
 
     public void close(String address, int port) {
-        Log.i("close", "Address: " + address + ":" + port);
+//        Log.i("close", "Address: " + address + ":" + port);
         ServiceFunctions.call(rsm, NetworkServiceProtocol.ON_CLOSE, new ByteCall(address, port, null));
     }
 
@@ -99,7 +99,7 @@ public class TCPServerAPI {
 
     public void call(String func, Object args) {
         try {
-            Log.i("Calling", func + "(" + args.getClass() + ")");
+//            Log.i("Calling", func + "(" + args.getClass() + ")");
             if (args instanceof ByteCall) {
                 ByteCall byteCall = (ByteCall) args;
                 if (byteCall.getBytes() != null) {
