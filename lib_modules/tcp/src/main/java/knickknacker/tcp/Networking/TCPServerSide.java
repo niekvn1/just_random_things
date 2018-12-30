@@ -24,7 +24,6 @@ import knickknacker.datastructures.ConcurrentList;
  */
 
 public class TCPServerSide {
-    private static final String ADDRESS = "localhost";
     private final int PORT;
     private final int BUFFER_SIZE;
     private static final int BACKLOG = 4;
