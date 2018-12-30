@@ -28,10 +28,10 @@ import knickknacker.tcp.RemoteCall;
 import knickknacker.tcp.Serialize;
 import knickknacker.tcp.Networking.TCPServerSide;
 import knickknacker.tcp.Networking.TCPServerUser;
-import knickknacker.tcp.Signables.PublicUserData;
-import knickknacker.tcp.Signables.Signable;
-import knickknacker.tcp.Signables.SignableObject;
-import knickknacker.tcp.Signables.SignableString;
+import knickknacker.shared.Signables.PublicUserData;
+import knickknacker.shared.Signables.Signable;
+import knickknacker.shared.Signables.SignableObject;
+import knickknacker.shared.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
 /**

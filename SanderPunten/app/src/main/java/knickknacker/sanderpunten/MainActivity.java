@@ -28,7 +28,6 @@ import knickknacker.sanderpunten.ActivityTools.Setups.ProfileMenuCallback;
 import knickknacker.sanderpunten.ActivityTools.Setups.PuntenManager;
 import knickknacker.sanderpunten.ActivityTools.Setups.PuntenManagerCallback;
 import knickknacker.sanderpunten.Layouts.Layout;
-import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManager;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.LayoutManagerCallback;
 import knickknacker.sanderpunten.Services.NetworkService;
@@ -36,10 +35,10 @@ import knickknacker.sanderpunten.Services.NetworkServiceProtocol;
 import knickknacker.sanderpunten.Services.ServiceFunctions;
 import knickknacker.sanderpunten.Storage.LocalStorage;
 import knickknacker.tcp.Protocol.SanderServerProtocol;
-import knickknacker.tcp.Signables.PublicUserData;
-import knickknacker.tcp.Signables.Signable;
-import knickknacker.tcp.Signables.SignableObject;
-import knickknacker.tcp.Signables.SignableString;
+import knickknacker.shared.Signables.PublicUserData;
+import knickknacker.shared.Signables.Signable;
+import knickknacker.shared.Signables.SignableObject;
+import knickknacker.shared.Signables.SignableString;
 
 public class MainActivity extends AppCompatActivity implements LayoutManagerCallback, MainMenuCallback,
         ProfileMenuCallback, ChatMenuCallback, PuntenManagerCallback {

@@ -2,7 +2,7 @@ package knickknacker.sanderpunten.ActivityTools.Setups;
 
 import java.util.ArrayList;
 
-import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.shared.Signables.PublicUserData;
 
 public interface PuntenManagerCallback {
     void getUsers();

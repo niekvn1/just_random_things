@@ -10,9 +10,13 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/assets" />
+            <option value="$PROJECT_DIR$/datastructures" />
             <option value="$PROJECT_DIR$/external_storage" />
             <option value="$PROJECT_DIR$/rsa" />
+            <option value="$PROJECT_DIR$/serialization" />
+            <option value="$PROJECT_DIR$/services" />
             <option value="$PROJECT_DIR$/tcp" />
+            <option value="$PROJECT_DIR$/udp" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

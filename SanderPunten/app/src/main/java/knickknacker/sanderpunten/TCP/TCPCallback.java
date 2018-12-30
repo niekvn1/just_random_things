@@ -2,7 +2,7 @@ package knickknacker.sanderpunten.TCP;
 
 import java.io.Serializable;
 
-import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.shared.Signables.PublicUserData;
 
 /**
  * Created by Niek on 28-10-17.

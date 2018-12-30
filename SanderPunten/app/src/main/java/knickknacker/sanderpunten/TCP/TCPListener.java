@@ -13,20 +13,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.util.ArrayList;
 
 import knickknacker.RSA.RSA;
-import knickknacker.sanderpunten.Services.NetworkService;
 import knickknacker.sanderpunten.Services.NetworkServiceProtocol;
 import knickknacker.tcp.Protocol.SanderServerProtocol;
 import knickknacker.tcp.RemoteCall;
 import knickknacker.tcp.Serialize;
-import knickknacker.tcp.Signables.Signable;
+import knickknacker.shared.Signables.Signable;
 import knickknacker.tcp.Networking.TCPClientSide;
 import knickknacker.tcp.Networking.TCPClientUser;
-import knickknacker.tcp.Signables.PublicUserData;
-import knickknacker.tcp.Signables.SignableObject;
-import knickknacker.tcp.Signables.SignableString;
 import knickknacker.tcp.TimeConverter;
 
 /**

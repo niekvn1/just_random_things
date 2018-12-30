@@ -1,7 +1,6 @@
 package knickknacker.sanderpunten.ActivityTools.Setups;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.LayoutBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.List;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Objects.TextBox;
 import knickknacker.sanderpunten.Layouts.LayoutMechanics.Touch.TouchCallback;
-import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.shared.Signables.PublicUserData;
 
 public class PuntenManager extends LayoutSetup {
     private PuntenManagerCallback callback;

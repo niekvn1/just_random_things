@@ -15,6 +15,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import knickknacker.datastructures.ConcurrentList;
+
 /**
  * Created by Niek on 30-10-17.
  *

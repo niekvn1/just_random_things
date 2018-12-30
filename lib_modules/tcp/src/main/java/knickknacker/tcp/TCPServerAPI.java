@@ -20,7 +20,6 @@ import knickknacker.tcp.Services.NetworkServiceProtocol;
 import knickknacker.tcp.Services.ServiceFunctions;
 
 import static knickknacker.tcp.Services.ServiceTypes.BROADCAST_KEY;
-import static knickknacker.tcp.Services.ServiceTypes.BROADCAST_TYPE;
 
 public class TCPServerAPI {
     private final int PORT;

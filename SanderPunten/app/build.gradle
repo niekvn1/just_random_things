@@ -28,4 +28,5 @@ dependencies {
     api project(':tcp')
     api project(':rsa')
     api project(':opengldrawables')
+    implementation project(':shared')
 }

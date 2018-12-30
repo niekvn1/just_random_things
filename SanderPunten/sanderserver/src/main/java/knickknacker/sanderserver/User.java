@@ -2,7 +2,7 @@ package knickknacker.sanderserver;
 
 import java.security.PublicKey;
 
-import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.shared.Signables.PublicUserData;
 
 public class User {
     private PublicUserData publicUserData;

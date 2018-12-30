@@ -1,1 +1,1 @@
-include ':app', ':sanderserver', ':tcp', ':rsa', ':opengldrawables'
+include ':app', ':sanderserver', ':tcp', ':rsa', ':opengldrawables', ':shared'

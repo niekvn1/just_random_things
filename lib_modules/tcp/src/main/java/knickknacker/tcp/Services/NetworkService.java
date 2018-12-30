@@ -7,18 +7,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.util.Log;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import knickknacker.tcp.Networking.TCPServerSide;
 import knickknacker.tcp.Networking.TCPServerUser;
-import knickknacker.tcp.Serialize;
-import knickknacker.tcp.TCPServerAPI;
 
 import static knickknacker.tcp.Services.NetworkServiceProtocol.FUNC_ARGS;
 import static knickknacker.tcp.Services.NetworkServiceProtocol.FUNC_NAME;
@@ -35,10 +31,17 @@ public class NetworkService extends Service implements TCPServerUser {
     private final HandlerIn h_in = new HandlerIn(this);
     private final Messenger m_in = new Messenger(this.h_in);
     private TCPServerSide server;
+    private int port;
+    private int bufferSize;
+
+    public NetworkService(int port, int bufferSize) {
+        this.port = port;
+        this.bufferSize = bufferSize;
+    }
 
     @Override
     public void onCreate() {
-        this.server = new TCPServerSide(this, 11223, 4096);
+        this.server = new TCPServerSide(this, port, bufferSize);
         this.server.startServer();
     }
 

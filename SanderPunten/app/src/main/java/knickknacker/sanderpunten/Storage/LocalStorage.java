@@ -1,6 +1,6 @@
 package knickknacker.sanderpunten.Storage;
 
-import knickknacker.tcp.Signables.PublicUserData;
+import knickknacker.shared.Signables.PublicUserData;
 
 public class LocalStorage {
     private PublicUserData publicUserData = null;
