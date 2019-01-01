@@ -1,4 +1,4 @@
-package knickknacker.services;
+package knickknacker.datastructures;
 
 import android.util.Log;
 

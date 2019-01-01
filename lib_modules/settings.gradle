@@ -1,1 +1,1 @@
-include ':app', ':rsa', ':tcp', ':assets', ':external_storage', ':udp', ':services', ':datastructures', ':serialization'
+include ':app', ':rsa', ':tcp', ':assets', ':external_storage', ':udp', ':services', ':datastructures', ':serialization', ':remotefunctioncalls'

@@ -57,7 +57,7 @@ public class TCPServerSide {
     }
 
     /** Close the server. */
-    public void closeServer() {
+    public void close() {
         if (this.startThread != null) {
             this.startThread.interrupt();
         }
@@ -201,7 +201,6 @@ public class TCPServerSide {
                     msg = TCPServerSide.this.handler.obtainMessage();
                     bundle = new Bundle();
                     read = reader.read(buffer, 0, buffer.length);
-//                    Log.i("Bytes Read", "" + read);
                     bundle.putString(SOCKET_ADDRESS_KEY, this.socketHolder.getSocket().getInetAddress().toString());
                     bundle.putInt(SOCKET_PORT_KEY, this.socketHolder.getSocket().getPort());
                     if (read >= 1) {
@@ -218,7 +217,7 @@ public class TCPServerSide {
                     msg.sendToTarget();
                 }
             } catch(IOException e) {
-//                e.printStackTrace();
+                e.printStackTrace();
             }
         }
     }

@@ -1,4 +1,4 @@
-package knickknacker.tcp;
+package knickknacker.tcp.Wrappers.ServiceAPI;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -9,7 +9,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
-import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

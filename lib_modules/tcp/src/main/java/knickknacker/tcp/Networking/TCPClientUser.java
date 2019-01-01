@@ -7,7 +7,7 @@ package knickknacker.tcp.Networking;
  */
 
 public interface TCPClientUser {
-    void onMessage(byte[] b);
+    void onReceive(byte[] b);
 
     void onConnect(boolean connected);
 

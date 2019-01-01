@@ -29,9 +29,11 @@ public class TCPClientSide {
     private Connect connect;
     private Handler connectHandler;
     private Handler messageHandler;
+    private int bufferSize;
 
-    public TCPClientSide(TCPClientUser user, String server_address, int server_port) {
+    public TCPClientSide(TCPClientUser user, String server_address, int server_port, int bufferSize) {
         this.user = user;
+        this.bufferSize = bufferSize;
         this.connect = new Connect(server_address, server_port);
         this.connectHandler = new Handler(new ConnectHandler());
         this.messageHandler = new Handler(new NewMessage());
@@ -44,14 +46,14 @@ public class TCPClientSide {
     }
 
     /** Send data to the server. */
-    public void sendData(byte[] b) {
+    public void send(byte[] b) {
         if (!this.socket.isClosed()) {
             new Thread(new SendToServer(b)).start();
         }
     }
 
     /** Start a thread to receive data. */
-    public void startReceiving() {
+    private void startReceiving() {
         if (!this.socket.isClosed()) {
             if (this.receiveThread == null) {
                 this.receiveThread = new Thread(new Receiver());
@@ -61,7 +63,7 @@ public class TCPClientSide {
     }
 
     /** Close the connection with the server. */
-    public void closeConnection() {
+    public void close() {
         new Thread(new TCPClientSide.CloseConnection()).start();
     }
 
@@ -70,6 +72,7 @@ public class TCPClientSide {
             Bundle bundle = msg.getData();
             boolean connected = bundle.getBoolean(CONNECTED_KEY, false);
             TCPClientSide.this.user.onConnect(connected);
+            startReceiving();
             return false;
         }
     }
@@ -83,7 +86,7 @@ public class TCPClientSide {
                 return true;
             } else {
                 byte[] data = bundle.getByteArray(MESSAGE_KEY);
-                TCPClientSide.this.user.onMessage(data);
+                TCPClientSide.this.user.onReceive(data);
                 return false;
             }
         }
@@ -149,7 +152,7 @@ public class TCPClientSide {
     /** Runnable class to receive data from the server. */
     private class Receiver implements Runnable {
         public void run() {
-            byte[] buffer = new byte[10192];
+            byte[] buffer = new byte[bufferSize];
             int read;
             Message msg;
             Bundle bundle;

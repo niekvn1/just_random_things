@@ -17,18 +17,21 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ServiceWrapper {
+import knickknacker.remotefunctioncalls.Arguments;
+import knickknacker.remotefunctioncalls.FunctionCall;
+import knickknacker.remotefunctioncalls.FunctionCaller;
+
+public class ServiceWrapper extends FunctionCaller{
     private final String BROADCAST;
     private Context context;
     private Class<?> service;
-    private ServiceWrapperCallback callback;
 
     public ServiceWrapper(ServiceWrapperCallback callback, Context context,
                           String broadcast, Class<?> service) {
         BROADCAST = broadcast;
         this.context = context;
         this.service = service;
-        this.callback = callback;
+        executor = callback;
 
         if (this.rsr != null) {
             IntentFilter filter = new IntentFilter(BROADCAST);
@@ -40,9 +43,13 @@ public class ServiceWrapper {
         Log.i("ServiceWrapper", "bound=" + bound);
     }
 
-
-    public void send(int what, Message msg) {
-        msg.what = what;
+    public void call(String func, Serializable... objects) {
+        Arguments args = new Arguments(objects);
+        Message msg = Message.obtain();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(ServiceProtocol.KEY_FUNCTION_CALL, new FunctionCall(func, args));
+        msg.setData(bundle);
+        Log.i("ServiceWrapper", "call -> " + func);
         if (rsm != null) {
             try {
                 rsm.send(msg);
@@ -52,40 +59,12 @@ public class ServiceWrapper {
         }
     }
 
-    public void call(String func, Serializable... objects) {
-        Arguments args = new Arguments(objects.length);
-        args.push(objects);
-
-        Message msg = Message.obtain();
-        Bundle bundle = new Bundle();
-        bundle.putString(ServiceProtocol.KEY_FUNC_NAME, func);
-        bundle.putSerializable(ServiceProtocol.KEY_FUNC_ARGS, args);
-        msg.setData(bundle);
-        Log.i("ServiceWrapper", "call -> " + func);
-        send(ServiceProtocol.MSG_FUNCTION_CALL, msg);
-    }
-
-    private void call_callback(String func, Arguments args) {
-        try {
-            Log.i("ServiceWrapper", "callback -> " + func);
-            Class<?> cls = context.getClass();
-            Method method = cls.getDeclaredMethod(func, Arguments.class);
-            method.invoke(context, args);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
     private Messenger rsm = null;
     private ServiceConnection rsc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             ServiceWrapper.this.rsm = new Messenger(service);
-            callback.onServiceConnected();
+            ((ServiceWrapperCallback) executor).onServiceConnected();
         }
 
         @Override
@@ -98,11 +77,9 @@ public class ServiceWrapper {
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
-            String func = bundle.getString(ServiceProtocol.KEY_FUNC_NAME, "");
-            Serializable o = bundle.getSerializable(ServiceProtocol.KEY_FUNC_ARGS);
-            if (o instanceof Arguments) {
-                Arguments args = (Arguments) o;
-                call_callback(func, args);
+            Serializable o = bundle.getSerializable(ServiceProtocol.KEY_FUNCTION_CALL);
+            if (o instanceof FunctionCall) {
+                execute((FunctionCall) o);
             }
         }
     };

@@ -1,5 +1,9 @@
 package knickknacker.udp.UDPBeacon;
 
 public interface BeaconListenerCallback {
-    void onBeaconMessage(BeaconMessage beaconMessage, String address, int port);
+    void onNewBeaconMessage(BeaconMessage bm);
+
+    void onChangedBeaconMessage(BeaconMessage bm_old, BeaconMessage bm_new);
+
+    void onOutOfTime(BeaconMessage bm);
 }

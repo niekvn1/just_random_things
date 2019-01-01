@@ -1,27 +1,21 @@
-package knickknacker.services;
+package knickknacker.remotefunctioncalls;
 
 import java.io.Serializable;
 
 public class Arguments implements Serializable {
     private Serializable[] args;
     private int cursor = 0;
-    private boolean notfull = true;
 
-    public Arguments(int size) {
-        args = new Serializable[size];
+    public Arguments(Arguments args) {
+        this.args = args.getArgs();
     }
 
-    public void push(Serializable... objects) {
-        for (Serializable object : objects) {
-            if (notfull) {
-                args[cursor] = object;
-                cursor += 1;
-                if (cursor == args.length) {
-                    notfull = false;
-                    cursor = 0;
-                }
-            }
-        }
+    public Arguments(Serializable... args) {
+        this.args = args;
+    }
+
+    public Serializable[] getArgs() {
+        return args;
     }
 
     public <T> T pop(Class<T> cls) {
@@ -37,6 +31,7 @@ public class Arguments implements Serializable {
     public int length() {
         return args.length;
     }
+
 
     private <T> T cast(Object o, Class<T> clazz) {
         return clazz.isInstance(o) ? clazz.cast(o) : null;

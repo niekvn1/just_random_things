@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/assets" />
             <option value="$PROJECT_DIR$/datastructures" />
             <option value="$PROJECT_DIR$/external_storage" />
+            <option value="$PROJECT_DIR$/remotefunctioncalls" />
             <option value="$PROJECT_DIR$/rsa" />
             <option value="$PROJECT_DIR$/serialization" />
             <option value="$PROJECT_DIR$/services" />

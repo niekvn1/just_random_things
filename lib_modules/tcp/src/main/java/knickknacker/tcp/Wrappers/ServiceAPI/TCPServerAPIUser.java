@@ -1,4 +1,4 @@
-package knickknacker.tcp;
+package knickknacker.tcp.Wrappers.ServiceAPI;
 
 public interface TCPServerAPIUser {
     void onConnect(String address, int port);

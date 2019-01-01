@@ -47,7 +47,7 @@ public class NetworkService extends Service implements TCPServerUser {
 
     @Override
     public void onDestroy() {
-        server.closeServer();
+        server.close();
     }
 
     public void onDisconnect(String address, int port) {
