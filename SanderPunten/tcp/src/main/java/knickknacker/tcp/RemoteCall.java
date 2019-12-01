@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by Niek on 28-10-17.
  *
  * Other kind of messages are wrapped within this message object before they are sent over the
- * network. On the other side the will be unwrapped and used.
+ * network. On the other side the will be unwrapped and used. Wolla
  */
 
 public class RemoteCall implements Serializable {

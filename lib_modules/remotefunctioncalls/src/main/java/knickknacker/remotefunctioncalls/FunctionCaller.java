@@ -3,6 +3,8 @@ package knickknacker.remotefunctioncalls;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/** This class uses reflection to call certain
+ * functions in the name of the executor object. */
 public class FunctionCaller {
     protected Object executor;
 

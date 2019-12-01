@@ -7,10 +7,10 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
-import knickknacker.tcp.TCPServerAPI;
-import knickknacker.tcp.TCPServerAPIUser;
+import knickknacker.tcp.Wrappers.ServiceAPI.TCPServerAPI;
+import knickknacker.tcp.Wrappers.ServiceAPI.TCPServerAPIUser;
 
-public class WebServer implements TCPServerAPIUser {
+public class WebServer implements TCPServerAxPIUser {
     protected final int PORT;
     protected final int BUFFER_SIZE;
 

@@ -10,8 +10,11 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/../lib_modules/assets" />
+            <option value="$PROJECT_DIR$/../lib_modules/datastructures" />
             <option value="$PROJECT_DIR$/../lib_modules/external_storage" />
+            <option value="$PROJECT_DIR$/../lib_modules/remotefunctioncalls" />
             <option value="$PROJECT_DIR$/../lib_modules/rsa" />
+            <option value="$PROJECT_DIR$/../lib_modules/serialization" />
             <option value="$PROJECT_DIR$/../lib_modules/tcp" />
           </set>
         </option>

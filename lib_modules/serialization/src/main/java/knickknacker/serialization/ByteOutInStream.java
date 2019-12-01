@@ -3,6 +3,8 @@ package knickknacker.serialization;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+/** A ByteArrayOutputStream that can be easily converted to an
+ * input stream. */
 public class ByteOutInStream extends ByteArrayOutputStream {
     public ByteOutInStream() {
         super();

@@ -39,6 +39,7 @@ public abstract class Serialize {
         return null;
     }
 
+    /** Deserialize an object by reading it from a partition of the byte array. */
     public static Object deserializeFromByteArray(byte[] b, int off, int len) {
         ByteOutInStream outStream = new ByteOutInStream();
         outStream.write(b, off, len);
@@ -76,6 +77,7 @@ public abstract class Serialize {
         return null;
     }
 
+    /** Serialize an object and write it to a partition of the byte array. */
     public static int serializeToByteArray(Serializable o, byte[] b, int off, int len) {
         try {
             ByteOutInStream outStream = createOut(o);

@@ -2,6 +2,9 @@ package knickknacker.remotefunctioncalls;
 
 import java.io.Serializable;
 
+/** This class forms a Remote Function Call, the name
+ * of the function that will be called is stored in here
+ * together with the arguments for that function. */
 public class FunctionCall extends Message {
     private String func;
     private Arguments args;

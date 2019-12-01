@@ -11,6 +11,7 @@ import knickknacker.serialization.Serialize;
 import knickknacker.tcp.Networking.TCPServerSide;
 import knickknacker.tcp.Networking.TCPServerUser;
 
+/** A TCP server wrapper that implements remote function calls. */
 public abstract class ServerWrapper extends FunctionCaller implements TCPServerUser {
     private TCPServerSide server;
 
@@ -19,6 +20,7 @@ public abstract class ServerWrapper extends FunctionCaller implements TCPServerU
         this.server.startServer();
     }
 
+    /** Execute incoming function calls. */
     protected void execute(FunctionCall call, String address, int port) {
         String func = call.getFunc();
         Arguments args = call.getArgs();
@@ -36,6 +38,7 @@ public abstract class ServerWrapper extends FunctionCaller implements TCPServerU
         }
     }
 
+    /** Execute incoming function calls. */
     public void onReceive(byte[] bytes, String address, int port) {
         Object object = Serialize.deserialize(bytes);
         if (object instanceof FunctionCall) {
@@ -44,30 +47,36 @@ public abstract class ServerWrapper extends FunctionCaller implements TCPServerU
         }
     }
 
+    /** Send outgoing function calls */
     public void clientCall(String address, int port, String func, Arguments args) {
         FunctionCall c = new FunctionCall(func, args);
         server.sendTo(address, port, Serialize.serialize(c));
     }
 
+    /** Send outgoing function calls */
     public void clientCall(String address, int port, String func, Serializable... args) {
         FunctionCall c = new FunctionCall(func, args);
         server.sendTo(address, port, Serialize.serialize(c));
     }
 
+    /** Broadcast outgoing function calls */
     public void broadcastCall(String func, Arguments args) {
         FunctionCall c = new FunctionCall(func, args);
         server.broadcast(Serialize.serialize(c));
     }
 
+    /** Broadcast outgoing function calls */
     public void broadcastCall(String func, Serializable... args) {
         FunctionCall c = new FunctionCall(func, args);
         this.server.broadcast(Serialize.serialize(c));
     }
 
+    /** Close a connection with a client. */
     public void closeConnection(String address, int port) {
         server.closeConnection(address, port);
     }
 
+    /** Close the server. */
     public void close() {
         this.server.close();
     }

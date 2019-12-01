@@ -14,6 +14,7 @@ import knickknacker.remotefunctioncalls.Arguments;
 import knickknacker.remotefunctioncalls.FunctionCall;
 import knickknacker.remotefunctioncalls.FunctionCaller;
 
+/** A WrappableService that implements Remote Function Calls */
 public abstract class WrappableService extends Service {
     protected final HandlerIn h_in = new HandlerIn();
     protected final Messenger m_in = new Messenger(this.h_in);
@@ -46,6 +47,7 @@ public abstract class WrappableService extends Service {
         }
     }
 
+    /** Execute remote functions. */
     protected void call(Message msg) {
         Bundle bundle = msg.getData();
         Serializable o = bundle.getSerializable(ServiceProtocol.KEY_FUNCTION_CALL);
@@ -54,6 +56,7 @@ public abstract class WrappableService extends Service {
         }
     }
 
+    /** Broadcast function calls to listening activities. */
     public void broadcast(String func, Serializable... objects) {
         FunctionCall c = new FunctionCall(func, new Arguments(objects));
 

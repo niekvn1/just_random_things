@@ -21,6 +21,7 @@ import knickknacker.remotefunctioncalls.Arguments;
 import knickknacker.remotefunctioncalls.FunctionCall;
 import knickknacker.remotefunctioncalls.FunctionCaller;
 
+/** A wrapper around a given WrappableService that implements Remote Function Calls */
 public class ServiceWrapper extends FunctionCaller{
     private final String BROADCAST;
     private Context context;
@@ -43,6 +44,7 @@ public class ServiceWrapper extends FunctionCaller{
         Log.i("ServiceWrapper", "bound=" + bound);
     }
 
+    /** Call a function on the remote end. */
     public void call(String func, Serializable... objects) {
         Arguments args = new Arguments(objects);
         Message msg = Message.obtain();
@@ -59,6 +61,7 @@ public class ServiceWrapper extends FunctionCaller{
         }
     }
 
+    /** The service communication (outgoing). */
     private Messenger rsm = null;
     private ServiceConnection rsc = new ServiceConnection() {
         @Override
@@ -73,6 +76,7 @@ public class ServiceWrapper extends FunctionCaller{
         }
     };
 
+    /** The service communication (incoming) */
     private BroadcastReceiver rsr = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -84,6 +88,7 @@ public class ServiceWrapper extends FunctionCaller{
         }
     };
 
+    /** Clean up the service. */
     public void onDestroy() {
         if (this.rsm != null) {
             context.unbindService(this.rsc);

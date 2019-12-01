@@ -2,6 +2,9 @@ package knickknacker.remotefunctioncalls;
 
 import java.io.Serializable;
 
+/** This class is a data structure to fill with function arguments for
+ * remote functions. (Functions on the other side of a TCP connection
+ * for example). */
 public class Arguments implements Serializable {
     private Serializable[] args;
     private int cursor = 0;
@@ -18,6 +21,7 @@ public class Arguments implements Serializable {
         return args;
     }
 
+    /** Get the next argument and cast it to cls. */
     public <T> T pop(Class<T> cls) {
         if (cursor == args.length) {
             return null;

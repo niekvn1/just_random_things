@@ -5,6 +5,15 @@ project(':rsa').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things
 include ':tcp'
 project(':tcp').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things/lib_modules/tcp')
 
+include ':remotefunctioncalls'
+project(':remotefunctioncalls').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things/lib_modules/remotefunctioncalls')
+
+include ':datastructures'
+project(':datastructures').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things/lib_modules/datastructures')
+
+include ':serialization'
+project(':serialization').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things/lib_modules/serialization')
+
 include ':assets'
 project(':assets').projectDir=new File('F:/Users/niekv/myAndroid/just_random_things/lib_modules/assets')
 
